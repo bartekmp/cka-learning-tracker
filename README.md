@@ -12,8 +12,8 @@ It includes:
 ## Project Structure
 
 - `src/`: source HTML, CSS, JS, and data files.
-    - `404.html`: custom not-found page served by GitHub Pages.
-    - `robots.txt`: crawler policy (allow all).
+- `404.html`: custom not-found page served by GitHub Pages.
+- `robots.txt`: crawler policy (allow all).
 - `dist/`: generated static output ready for GitHub Pages.
 - `build.mjs`: build script that copies assets and bundles the React tracker.
 - `.editorconfig`: enforces tab indentation (4-wide) and LF line endings across editors.
