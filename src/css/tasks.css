@@ -244,7 +244,7 @@ html.dark .step-desc {
 	border-radius: 8px;
 	padding: 10px 12px;
 	cursor: pointer;
-	font-family: 'SFMono-Regular', 'Consolas', monospace;
+	font-family: SFMono-Regular, Consolas, monospace;
 	font-size: 12px;
 	color: #1d4ed8;
 	white-space: pre-wrap;
