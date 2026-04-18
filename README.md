@@ -1,5 +1,7 @@
 # CKA Learning Tracker
 
+**Live site: <https://bartekmp.github.io/cka-learning-tracker/>**
+
 A lightweight static study site for the Certified Kubernetes Administrator exam.
 
 It includes:
