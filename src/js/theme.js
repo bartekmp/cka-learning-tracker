@@ -32,10 +32,6 @@
 		return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 	}
 
-	function currentTheme() {
-		return dark() ? 'dark' : 'light';
-	}
-
 	function syncThemeLinks(themeValue) {
 		var links = document.querySelectorAll('a[href]');
 
