@@ -1,0 +1,29 @@
+{
+	"name": "cka-learning-tracker",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Static CKA study tracker and practice task site.",
+	"scripts": {
+		"build": "node build.mjs",
+		"format": "prettier --write \"**/*.{html,css,js,json,md,yml,yaml}\"",
+		"format:check": "prettier --check \"**/*.{html,css,js,json,md,yml,yaml}\"",
+		"lint": "npm run lint:js && npm run lint:css && npm run lint:html && npm run lint:md",
+		"lint:js": "eslint build.mjs src/data/**/*.js src/js/**/*.js",
+		"lint:css": "stylelint \"src/css/**/*.css\"",
+		"lint:html": "htmlhint \"src/*.html\"",
+		"lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\""
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.25.1",
+		"esbuild": "^0.25.3",
+		"eslint": "^9.25.1",
+		"globals": "^16.0.0",
+		"htmlhint": "^1.6.3",
+		"markdownlint-cli2": "^0.21.0",
+		"prettier": "^3.5.3",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"stylelint": "^16.16.0",
+		"stylelint-config-standard": "^38.0.0"
+	}
+}
