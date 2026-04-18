@@ -1,19 +1,21 @@
 body {
-  padding: 24px 16px 60px;
+	padding: 24px 16px 60px;
 }
 
 a {
-  color: #2563eb;
+	color: #2563eb;
 }
 
 html.dark a {
-  color: #60a5fa;
+	color: #60a5fa;
 }
 
-input[type="checkbox"] {
-  cursor: pointer;
+input[type='checkbox'] {
+	cursor: pointer;
 }
 
 * {
-  transition: background 0.1s, color 0.1s;
+	transition:
+		background 0.1s,
+		color 0.1s;
 }

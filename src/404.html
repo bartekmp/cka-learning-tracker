@@ -1,89 +1,101 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Page Not Found · CKA Learning Tracker</title>
+		<meta name="description" content="The page you were looking for could not be found." />
+		<meta name="theme-color" content="#f5f5f3" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)" />
+		<link rel="stylesheet" href="css/shared.css" />
+		<script>
+			!(function () {
+				var e = new URLSearchParams(window.location.search).get('theme'),
+					t =
+						e === 'dark' || e === 'light'
+							? e
+							: localStorage.getItem('cka-theme') ||
+								(matchMedia('(prefers-color-scheme:dark)').matches
+									? 'dark'
+									: 'light');
+				if (t === 'dark') document.documentElement.classList.add('dark');
+			})();
+		</script>
+		<style>
+			.not-found {
+				min-height: 100vh;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				text-align: center;
+				padding: 40px 20px;
+				gap: 16px;
+			}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Page Not Found · CKA Learning Tracker</title>
-    <meta name="description" content="The page you were looking for could not be found." />
-    <meta name="theme-color" content="#f5f5f3" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)" />
-    <link rel="stylesheet" href="css/shared.css">
-    <script>!function () { var e = new URLSearchParams(window.location.search).get('theme'), t = e === 'dark' || e === 'light' ? e : localStorage.getItem('cka-theme') || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'); if (t === 'dark') document.documentElement.classList.add('dark') }()</script>
-    <style>
-        .not-found {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
-            gap: 16px;
-        }
+			.not-found-code {
+				font-size: 72px;
+				font-weight: 700;
+				line-height: 1;
+				color: #60a5fa;
+			}
 
-        .not-found-code {
-            font-size: 72px;
-            font-weight: 700;
-            line-height: 1;
-            color: #60a5fa;
-        }
+			.not-found-title {
+				font-size: 22px;
+				font-weight: 600;
+			}
 
-        .not-found-title {
-            font-size: 22px;
-            font-weight: 600;
-        }
+			.not-found-desc {
+				font-size: 14px;
+				color: #888780;
+				max-width: 360px;
+			}
 
-        .not-found-desc {
-            font-size: 14px;
-            color: #888780;
-            max-width: 360px;
-        }
+			html.dark .not-found-desc {
+				color: #7a7872;
+			}
 
-        html.dark .not-found-desc {
-            color: #7a7872;
-        }
+			.not-found-link {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				margin-top: 8px;
+				padding: 10px 22px;
+				border-radius: 8px;
+				background: rgba(37, 99, 235, 0.09);
+				color: #2563eb;
+				border: 0.5px solid rgba(37, 99, 235, 0.3);
+				text-decoration: none;
+				font-size: 14px;
+				font-weight: 500;
+				transition: background 0.15s;
+			}
 
-        .not-found-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 8px;
-            padding: 10px 22px;
-            border-radius: 8px;
-            background: rgba(37, 99, 235, .09);
-            color: #2563eb;
-            border: 0.5px solid rgba(37, 99, 235, .3);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background 0.15s;
-        }
+			.not-found-link:hover {
+				background: rgba(37, 99, 235, 0.16);
+			}
 
-        .not-found-link:hover {
-            background: rgba(37, 99, 235, .16);
-        }
+			html.dark .not-found-link {
+				color: #60a5fa;
+				background: rgba(96, 165, 250, 0.12);
+				border-color: rgba(96, 165, 250, 0.3);
+			}
 
-        html.dark .not-found-link {
-            color: #60a5fa;
-            background: rgba(96, 165, 250, .12);
-            border-color: rgba(96, 165, 250, .3);
-        }
+			html.dark .not-found-link:hover {
+				background: rgba(96, 165, 250, 0.2);
+			}
+		</style>
+	</head>
 
-        html.dark .not-found-link:hover {
-            background: rgba(96, 165, 250, .20);
-        }
-    </style>
-</head>
-
-<body>
-    <div class="not-found">
-        <div class="not-found-code">404</div>
-        <div class="not-found-title">Page not found</div>
-        <div class="not-found-desc">The page you were looking for doesn't exist or has been moved.</div>
-        <a href="index.html" class="not-found-link">← Back to home</a>
-    </div>
-    <script src="js/theme.js"></script>
-</body>
-
+	<body>
+		<div class="not-found">
+			<div class="not-found-code">404</div>
+			<div class="not-found-title">Page not found</div>
+			<div class="not-found-desc">
+				The page you were looking for doesn't exist or has been moved.
+			</div>
+			<a href="index.html" class="not-found-link">← Back to home</a>
+		</div>
+		<script src="js/theme.js"></script>
+	</body>
 </html>

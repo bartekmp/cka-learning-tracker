@@ -1,198 +1,303 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>CKA Learning Tracker</title>
+		<link rel="stylesheet" href="css/shared.css" />
+		<link rel="stylesheet" href="css/index.css" />
+		<meta
+			name="description"
+			content="Offline-first CKA study toolkit. Track progress across all 9 exam sections, practice with real exam-style tasks, and copy key kubectl commands in one click."
+		/>
+		<meta property="og:title" content="CKA Learning Tracker" />
+		<meta
+			property="og:description"
+			content="Offline-first CKA study toolkit. Track progress across all 9 exam sections, practice with real exam-style tasks, and copy key kubectl commands in one click."
+		/>
+		<meta property="og:type" content="website" />
+		<meta name="theme-color" content="#f5f5f3" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)" />
+		<script>
+			!(function () {
+				var e = new URLSearchParams(window.location.search).get('theme'),
+					t =
+						e === 'dark' || e === 'light'
+							? e
+							: localStorage.getItem('cka-theme') ||
+								(matchMedia('(prefers-color-scheme:dark)').matches
+									? 'dark'
+									: 'light');
+				if (t === 'dark') document.documentElement.classList.add('dark');
+			})();
+		</script>
+	</head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CKA Learning Tracker</title>
-  <link rel="stylesheet" href="css/shared.css">
-  <link rel="stylesheet" href="css/index.css">
-  <meta name="description"
-    content="Offline-first CKA study toolkit. Track progress across all 9 exam sections, practice with real exam-style tasks, and copy key kubectl commands in one click." />
-  <meta property="og:title" content="CKA Learning Tracker" />
-  <meta property="og:description"
-    content="Offline-first CKA study toolkit. Track progress across all 9 exam sections, practice with real exam-style tasks, and copy key kubectl commands in one click." />
-  <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#f5f5f3" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)" />
-  <script>!function () { var e = new URLSearchParams(window.location.search).get('theme'), t = e === 'dark' || e === 'light' ? e : localStorage.getItem('cka-theme') || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'); if (t === 'dark') document.documentElement.classList.add('dark') }()</script>
-</head>
+	<body>
+		<main class="page">
+			<div class="hero">
+				<div class="hero-badge">
+					<span>☸️</span>
+					Kubernetes v1.35 · CKA exam · April 2026
+				</div>
+				<h1>CKA Learning Tracker</h1>
+				<p>
+					A self-contained, offline-first study toolkit for the Certified Kubernetes
+					Administrator exam. Track your progress across all 9 exam sections, practice
+					with real exam-style tasks.
+				</p>
+			</div>
 
-<body>
-  <main class="page">
+			<div class="version-banner">
+				<span style="font-size: 18px; flex-shrink: 0">⚠️</span>
+				<div>
+					<strong>Always verify the K8s version before you sit the exam.</strong><br />
+					This tracker is based on <strong>Kubernetes v1.35</strong> (CKA exam version as
+					of April 2026). The exam environment is updated within ~4–8 weeks of each K8s
+					minor release. Check the current version at the
+					<a
+						href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks"
+						target="_blank"
+						rel="noreferrer"
+						>Linux Foundation FAQ ↗</a
+					>
+				</div>
+			</div>
 
-    <div class="hero">
-      <div class="hero-badge">
-        <span>☸️</span>
-        Kubernetes v1.35 · CKA exam · April 2026
-      </div>
-      <h1>CKA Learning Tracker</h1>
-      <p>A self-contained, offline-first study toolkit for the Certified Kubernetes Administrator exam. Track your
-        progress across all 9 exam sections, practice with real exam-style tasks.</p>
-    </div>
+			<div class="cards">
+				<a href="cka-tracker.html" class="card blue">
+					<div class="card-icon">📋</div>
+					<div class="card-title">Study Tracker</div>
+					<div class="card-desc">
+						All 9 CKA sections broken into topics with checkable tasks, key commands to
+						copy, and per-section progress bars. Includes a full kubectl cheatsheet and
+						ADHD-friendly study tips.
+					</div>
+					<div class="card-meta">
+						<span class="tag">9 sections</span>
+						<span class="tag">Cheatsheet</span>
+						<span class="tag">Progress tracking</span>
+						<span class="tag">ADHD tips</span>
+					</div>
+					<div class="card-cta">Open tracker →</div>
+				</a>
+				<a href="cka-practice-tasks.html" class="card purple">
+					<div class="card-icon">🧪</div>
+					<div class="card-title">Practice Tasks</div>
+					<div class="card-desc">
+						24 hands-on, exam-style scenarios — one per major topic. Each has a hidden
+						step-by-step solution with click-to-copy commands, expected output, and
+						exam-day tips.
+					</div>
+					<div class="card-meta">
+						<span class="tag">24 tasks</span>
+						<span class="tag">Hidden solutions</span>
+						<span class="tag">Easy / Medium / Hard</span>
+					</div>
+					<div class="card-cta">Open practice tasks →</div>
+				</a>
+			</div>
 
-    <div class="version-banner">
-      <span style="font-size:18px;flex-shrink:0">⚠️</span>
-      <div>
-        <strong>Always verify the K8s version before you sit the exam.</strong><br>
-        This tracker is based on <strong>Kubernetes v1.35</strong> (CKA exam version as of April 2026).
-        The exam environment is updated within ~4–8 weeks of each K8s minor release.
-        Check the current version at the
-        <a href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks" target="_blank"
-          rel="noreferrer">Linux Foundation FAQ ↗</a>
-      </div>
-    </div>
+			<div class="features">
+				<h2>Features</h2>
+				<div class="feature-grid">
+					<div class="feature">
+						<span class="feature-icon">💾</span>
+						<div>
+							<strong>Auto-save</strong> — progress saves automatically to a file on
+							your disk (Chrome/Edge). Firefox falls back to manual export/import.
+						</div>
+					</div>
+					<div class="feature">
+						<span class="feature-icon">🌙</span>
+						<div>
+							<strong>Dark mode</strong> — follows your OS preference automatically.
+						</div>
+					</div>
+					<div class="feature">
+						<span class="feature-icon">📴</span>
+						<div>
+							<strong>Bundled output</strong> — the build ships all required runtime
+							files, including the tracker’s React dependency, directly inside the
+							final static site.
+						</div>
+					</div>
+					<div class="feature">
+						<span class="feature-icon">📋</span>
+						<div>
+							<strong>Click-to-copy</strong> — every command in the cheatsheet and
+							solutions copies to clipboard on click.
+						</div>
+					</div>
+					<div class="feature">
+						<span class="feature-icon">☸️</span>
+						<div>
+							<strong>Exam-aligned</strong> — content follows the official CKA
+							curriculum domains and weightings.
+						</div>
+					</div>
+					<div class="feature">
+						<span class="feature-icon">🧠</span>
+						<div>
+							<strong>ADHD-optimised</strong> — structured for active learning, not
+							passive video watching.
+						</div>
+					</div>
+				</div>
+			</div>
 
-    <div class="cards">
-      <a href="cka-tracker.html" class="card blue">
-        <div class="card-icon">📋</div>
-        <div class="card-title">Study Tracker</div>
-        <div class="card-desc">All 9 CKA sections broken into topics with checkable tasks, key commands to copy, and
-          per-section progress bars. Includes a full kubectl cheatsheet and ADHD-friendly study tips.</div>
-        <div class="card-meta">
-          <span class="tag">9 sections</span>
-          <span class="tag">Cheatsheet</span>
-          <span class="tag">Progress tracking</span>
-          <span class="tag">ADHD tips</span>
-        </div>
-        <div class="card-cta">Open tracker →</div>
-      </a>
-      <a href="cka-practice-tasks.html" class="card purple">
-        <div class="card-icon">🧪</div>
-        <div class="card-title">Practice Tasks</div>
-        <div class="card-desc">24 hands-on, exam-style scenarios — one per major topic. Each has a hidden step-by-step
-          solution with click-to-copy commands, expected output, and exam-day tips.</div>
-        <div class="card-meta">
-          <span class="tag">24 tasks</span>
-          <span class="tag">Hidden solutions</span>
-          <span class="tag">Easy / Medium / Hard</span>
-        </div>
-        <div class="card-cta">Open practice tasks →</div>
-      </a>
-    </div>
+			<div class="sections">
+				<h2>Curriculum coverage · ~77 hrs total</h2>
+				<div class="section-list">
+					<div class="section-item">
+						<div class="sec-dot" style="background: #60a5fa"></div>
+						<span class="sec-name">Core Concepts</span
+						><span class="sec-schedule">~12 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #a78bfa"></div>
+						<span class="sec-name">Scheduling</span
+						><span class="sec-schedule">~8 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #34d399"></div>
+						<span class="sec-name">Logging &amp; Monitoring</span
+						><span class="sec-schedule">~3 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #f59e0b"></div>
+						<span class="sec-name">Application Lifecycle Management</span
+						><span class="sec-schedule">~8 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #f87171"></div>
+						<span class="sec-name">Cluster Maintenance</span
+						><span class="sec-schedule">~8 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #c084fc"></div>
+						<span class="sec-name">Security</span
+						><span class="sec-schedule">~12 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #2dd4bf"></div>
+						<span class="sec-name">Storage</span
+						><span class="sec-schedule">~6 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #fb923c"></div>
+						<span class="sec-name">Networking</span
+						><span class="sec-schedule">~10 hrs</span>
+					</div>
+					<div class="section-item">
+						<div class="sec-dot" style="background: #94a3b8"></div>
+						<span class="sec-name">Troubleshooting</span
+						><span class="sec-schedule">~10 hrs</span>
+					</div>
+				</div>
+			</div>
 
-    <div class="features">
-      <h2>Features</h2>
-      <div class="feature-grid">
-        <div class="feature"><span class="feature-icon">💾</span>
-          <div><strong>Auto-save</strong> — progress saves automatically to a file on your disk (Chrome/Edge). Firefox
-            falls back to manual export/import.</div>
-        </div>
-        <div class="feature"><span class="feature-icon">🌙</span>
-          <div><strong>Dark mode</strong> — follows your OS preference automatically.</div>
-        </div>
-        <div class="feature"><span class="feature-icon">📴</span>
-          <div><strong>Bundled output</strong> — the build ships all required runtime files, including the tracker’s
-            React dependency, directly inside the final static site.</div>
-        </div>
-        <div class="feature"><span class="feature-icon">📋</span>
-          <div><strong>Click-to-copy</strong> — every command in the cheatsheet and solutions copies to clipboard on
-            click.</div>
-        </div>
-        <div class="feature"><span class="feature-icon">☸️</span>
-          <div><strong>Exam-aligned</strong> — content follows the official CKA curriculum domains and weightings.</div>
-        </div>
-        <div class="feature"><span class="feature-icon">🧠</span>
-          <div><strong>ADHD-optimised</strong> — structured for active learning, not passive video watching.</div>
-        </div>
-      </div>
-    </div>
+			<div class="features">
+				<h2>Useful resources</h2>
+				<div class="feature-grid">
+					<a
+						href="https://killercoda.com/killer-shell-cka"
+						target="_blank"
+						rel="noreferrer"
+						class="feature feature-link"
+					>
+						<span class="feature-icon">🐱</span>
+						<div>
+							<strong>Killer Coda</strong><br />Free browser-based CKA labs — short,
+							gamified, no local cluster needed.
+						</div>
+					</a>
+					<a
+						href="https://killer.sh"
+						target="_blank"
+						rel="noreferrer"
+						class="feature feature-link"
+					>
+						<span class="feature-icon">💀</span>
+						<div>
+							<strong>killer.sh</strong><br />Exam simulator — 2 sessions free with
+							exam purchase. Harder than the real thing.
+						</div>
+					</a>
+					<a
+						href="https://kubernetes.io/docs/reference/kubectl/cheatsheet/"
+						target="_blank"
+						rel="noreferrer"
+						class="feature feature-link"
+					>
+						<span class="feature-icon">📄</span>
+						<div>
+							<strong>kubectl cheat sheet</strong><br />Official docs page — open-book
+							during the exam, bookmark it now.
+						</div>
+					</a>
+					<a
+						href="https://pomofocus.io"
+						target="_blank"
+						rel="noreferrer"
+						class="feature feature-link"
+					>
+						<span class="feature-icon">🍅</span>
+						<div>
+							<strong>Pomofocus</strong><br />Pomodoro timer — 25 min on, 5 min off.
+							Start it before opening a terminal.
+						</div>
+					</a>
+					<a
+						href="https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/"
+						target="_blank"
+						rel="noreferrer"
+						class="feature feature-link"
+					>
+						<span class="feature-icon">🎓</span>
+						<div>
+							<strong>CKA — Linux Foundation</strong><br />Official exam page with
+							curriculum, pricing, and registration.
+						</div>
+					</a>
+					<a
+						href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks"
+						target="_blank"
+						rel="noreferrer"
+						class="feature feature-link"
+					>
+						<span class="feature-icon">☸️</span>
+						<div>
+							<strong>Exam FAQ</strong><br />Always check here for the current K8s
+							version running in the exam environment.
+						</div>
+					</a>
+				</div>
+			</div>
+		</main>
 
-    <div class="sections">
-      <h2>Curriculum coverage · ~77 hrs total</h2>
-      <div class="section-list">
-        <div class="section-item">
-          <div class="sec-dot" style="background:#60a5fa"></div><span class="sec-name">Core Concepts</span><span
-            class="sec-schedule">~12 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#a78bfa"></div><span class="sec-name">Scheduling</span><span
-            class="sec-schedule">~8 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#34d399"></div><span class="sec-name">Logging &amp;
-            Monitoring</span><span class="sec-schedule">~3 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#f59e0b"></div><span class="sec-name">Application Lifecycle
-            Management</span><span class="sec-schedule">~8 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#f87171"></div><span class="sec-name">Cluster Maintenance</span><span
-            class="sec-schedule">~8 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#c084fc"></div><span class="sec-name">Security</span><span
-            class="sec-schedule">~12 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#2dd4bf"></div><span class="sec-name">Storage</span><span
-            class="sec-schedule">~6 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#fb923c"></div><span class="sec-name">Networking</span><span
-            class="sec-schedule">~10 hrs</span>
-        </div>
-        <div class="section-item">
-          <div class="sec-dot" style="background:#94a3b8"></div><span class="sec-name">Troubleshooting</span><span
-            class="sec-schedule">~10 hrs</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="features">
-      <h2>Useful resources</h2>
-      <div class="feature-grid">
-        <a href="https://killercoda.com/killer-shell-cka" target="_blank" rel="noreferrer" class="feature feature-link">
-          <span class="feature-icon">🐱</span>
-          <div><strong>Killer Coda</strong><br>Free browser-based CKA labs — short, gamified, no local cluster needed.
-          </div>
-        </a>
-        <a href="https://killer.sh" target="_blank" rel="noreferrer" class="feature feature-link">
-          <span class="feature-icon">💀</span>
-          <div><strong>killer.sh</strong><br>Exam simulator — 2 sessions free with exam purchase. Harder than the real
-            thing.</div>
-        </a>
-        <a href="https://kubernetes.io/docs/reference/kubectl/cheatsheet/" target="_blank" rel="noreferrer"
-          class="feature feature-link">
-          <span class="feature-icon">📄</span>
-          <div><strong>kubectl cheat sheet</strong><br>Official docs page — open-book during the exam, bookmark it now.
-          </div>
-        </a>
-        <a href="https://pomofocus.io" target="_blank" rel="noreferrer" class="feature feature-link">
-          <span class="feature-icon">🍅</span>
-          <div><strong>Pomofocus</strong><br>Pomodoro timer — 25 min on, 5 min off. Start it before opening a terminal.
-          </div>
-        </a>
-        <a href="https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/"
-          target="_blank" rel="noreferrer" class="feature feature-link">
-          <span class="feature-icon">🎓</span>
-          <div><strong>CKA — Linux Foundation</strong><br>Official exam page with curriculum, pricing, and registration.
-          </div>
-        </a>
-        <a href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks" target="_blank"
-          rel="noreferrer" class="feature feature-link">
-          <span class="feature-icon">☸️</span>
-          <div><strong>Exam FAQ</strong><br>Always check here for the current K8s version running in the exam
-            environment.</div>
-        </a>
-      </div>
-    </div>
-
-  </main>
-
-  <footer>
-    <span>
-      <a href="https://github.com/bartekmp/cka-learning-tracker" target="_blank"
-        rel="noreferrer">bartekmp/cka-learning-tracker</a>
-    </span>
-    <span class="footer-sep">·</span>
-    <span>Licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noreferrer">Apache
-        License 2.0</a></span>
-    <span class="footer-sep">·</span>
-    <span>Based on Kubernetes v1.35 · April 2026</span>
-  </footer>
-  <script src="js/theme.js"></script>
-</body>
-
+		<footer>
+			<span>
+				<a
+					href="https://github.com/bartekmp/cka-learning-tracker"
+					target="_blank"
+					rel="noreferrer"
+					>bartekmp/cka-learning-tracker</a
+				>
+			</span>
+			<span class="footer-sep">·</span>
+			<span
+				>Licensed under
+				<a
+					href="https://www.apache.org/licenses/LICENSE-2.0"
+					target="_blank"
+					rel="noreferrer"
+					>Apache License 2.0</a
+				></span
+			>
+			<span class="footer-sep">·</span>
+			<span>Based on Kubernetes v1.35 · April 2026</span>
+		</footer>
+		<script src="js/theme.js"></script>
+	</body>
 </html>

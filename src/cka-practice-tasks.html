@@ -1,72 +1,132 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>CKA Practice Tasks</title>
+		<link rel="stylesheet" href="css/shared.css" />
+		<link rel="stylesheet" href="css/tasks.css" />
+		<meta
+			name="description"
+			content="24 hands-on CKA exam-style practice tasks with hidden step-by-step solutions, click-to-copy commands, and exam-day tips."
+		/>
+		<meta property="og:title" content="CKA Practice Tasks" />
+		<meta
+			property="og:description"
+			content="24 hands-on CKA exam-style practice tasks with hidden step-by-step solutions, click-to-copy commands, and exam-day tips."
+		/>
+		<meta property="og:type" content="website" />
+		<meta name="theme-color" content="#f5f5f3" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)" />
+		<script>
+			!(function () {
+				var e = new URLSearchParams(window.location.search).get('theme'),
+					t =
+						e === 'dark' || e === 'light'
+							? e
+							: localStorage.getItem('cka-theme') ||
+								(matchMedia('(prefers-color-scheme:dark)').matches
+									? 'dark'
+									: 'light');
+				if (t === 'dark') document.documentElement.classList.add('dark');
+			})();
+		</script>
+	</head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CKA Practice Tasks</title>
-  <link rel="stylesheet" href="css/shared.css">
-  <link rel="stylesheet" href="css/tasks.css">
-  <meta name="description"
-    content="24 hands-on CKA exam-style practice tasks with hidden step-by-step solutions, click-to-copy commands, and exam-day tips." />
-  <meta property="og:title" content="CKA Practice Tasks" />
-  <meta property="og:description"
-    content="24 hands-on CKA exam-style practice tasks with hidden step-by-step solutions, click-to-copy commands, and exam-day tips." />
-  <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#f5f5f3" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)" />
-  <script>!function () { var e = new URLSearchParams(window.location.search).get('theme'), t = e === 'dark' || e === 'light' ? e : localStorage.getItem('cka-theme') || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'); if (t === 'dark') document.documentElement.classList.add('dark') }()</script>
-</head>
+	<body>
+		<div class="wrap">
+			<h1>CKA practice tasks</h1>
+			<p class="subtitle">
+				One real task per topic · click "Show solution" only after you've tried · progress
+				saved in browser
+			</p>
+			<div
+				style="
+					display: inline-flex;
+					align-items: center;
+					gap: 8px;
+					background: rgba(37, 99, 235, 0.08);
+					border: 0.5px solid rgba(37, 99, 235, 0.25);
+					border-radius: 8px;
+					padding: 6px 12px;
+					margin-bottom: 18px;
+					font-size: 12px;
+				"
+			>
+				<span style="font-size: 15px">☸️</span>
+				<span
+					>Based on <strong>Kubernetes v1.35</strong> &mdash; CKA exam version as of April
+					2026.</span
+				>
+				<a
+					href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks"
+					target="_blank"
+					rel="noreferrer"
+					style="color: #2563eb; white-space: nowrap"
+					>Check current version ↗</a
+				>
+			</div>
 
-<body>
-  <div class="wrap">
-    <h1>CKA practice tasks</h1>
-    <p class="subtitle">One real task per topic · click "Show solution" only after you've tried · progress saved in
-      browser</p>
-    <div
-      style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,99,235,.08);border:0.5px solid rgba(37,99,235,.25);border-radius:8px;padding:6px 12px;margin-bottom:18px;font-size:12px;">
-      <span style="font-size:15px;">☸️</span>
-      <span>Based on <strong>Kubernetes v1.35</strong> &mdash; CKA exam version as of April 2026.</span>
-      <a href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks" target="_blank" rel="noreferrer"
-        style="color:#2563eb;white-space:nowrap;">Check current version ↗</a>
-    </div>
+			<div id="overall-progress">
+				<div class="progress-bar-wrap">
+					<div class="progress-bar" id="overall-bar" style="width: 0%"></div>
+				</div>
+				<div class="progress-label" id="overall-label">0 / 0 tasks completed</div>
+			</div>
 
-    <div id="overall-progress">
-      <div class="progress-bar-wrap">
-        <div class="progress-bar" id="overall-bar" style="width:0%"></div>
-      </div>
-      <div class="progress-label" id="overall-label">0 / 0 tasks completed</div>
-    </div>
+			<div id="autosave-bar" class="autosave-bar state-none">
+				<span class="autosave-icon" id="as-icon">💾</span>
+				<span class="autosave-text" id="as-text">Setting up…</span>
+				<span class="as-flash" id="as-flash"></span>
+			</div>
 
-    <div id="autosave-bar" class="autosave-bar state-none">
-      <span class="autosave-icon" id="as-icon">💾</span>
-      <span class="autosave-text" id="as-text">Setting up…</span>
-      <span class="as-flash" id="as-flash"></span>
-    </div>
+			<div class="tabs" id="tabs"></div>
+			<div id="panels"></div>
+		</div>
 
-    <div class="tabs" id="tabs"></div>
-    <div id="panels"></div>
-  </div>
+		<footer
+			style="
+				max-width: 900px;
+				margin: 48px auto 0;
+				padding: 20px 0 40px;
+				border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+				font-size: 11px;
+				color: #888;
+			"
+		>
+			<span>
+				<a href="index.html" style="color: #2563eb; text-decoration: none"
+					>← Back to project home</a
+				>
+			</span>
+			<span style="text-align: center; flex: 1; min-width: 200px">
+				<a
+					href="https://github.com/bartekmp/cka-learning-tracker"
+					target="_blank"
+					rel="noreferrer"
+					style="color: #2563eb; text-decoration: none"
+					>bartekmp/cka-learning-tracker</a
+				>
+				&nbsp;·&nbsp; Licensed under
+				<a
+					href="https://www.apache.org/licenses/LICENSE-2.0"
+					target="_blank"
+					rel="noreferrer"
+					style="color: #2563eb; text-decoration: none"
+					>Apache 2.0</a
+				>
+			</span>
+			<span>K8s v1.35 · April 2026</span>
+		</footer>
 
-  <footer
-    style="max-width:900px;margin:48px auto 0;padding:20px 0 40px;border-top:0.5px solid rgba(0,0,0,.10);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#888;">
-    <span>
-      <a href="index.html" style="color:#2563eb;text-decoration:none;">← Back to project home</a>
-    </span>
-    <span style="text-align:center;flex:1;min-width:200px;">
-      <a href="https://github.com/bartekmp/cka-learning-tracker" target="_blank" rel="noreferrer"
-        style="color:#2563eb;text-decoration:none;">bartekmp/cka-learning-tracker</a>
-      &nbsp;·&nbsp;
-      Licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noreferrer"
-        style="color:#2563eb;text-decoration:none;">Apache 2.0</a>
-    </span>
-    <span>K8s v1.35 · April 2026</span>
-  </footer>
-
-  <script src="js/autosave.js"></script>
-  <script src="data/tasks-data.js"></script>
-  <script src="js/tasks.js"></script>
-  <script src="js/theme.js"></script>
-</body>
-
+		<script src="js/autosave.js"></script>
+		<script src="data/tasks-data.js"></script>
+		<script src="js/tasks.js"></script>
+		<script src="js/theme.js"></script>
+	</body>
 </html>
