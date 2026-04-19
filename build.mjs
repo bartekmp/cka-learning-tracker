@@ -1,8 +1,10 @@
-import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import pkg from './package.json' with { type: 'json' };
 
+const { version } = pkg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const srcDir = path.join(__dirname, 'src');
@@ -39,3 +41,12 @@ await build({
 });
 
 await writeFile(path.join(distDir, '.nojekyll'), '');
+
+const htmlPages = ['index.html', 'cka-tracker.html', 'cka-practice-tasks.html'];
+await Promise.all(
+    htmlPages.map(async (file) => {
+        const filePath = path.join(distDir, file);
+        const content = await readFile(filePath, 'utf8');
+        await writeFile(filePath, content.replaceAll('__APP_VERSION__', `v${version}`));
+    }),
+);
