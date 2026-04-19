@@ -165,6 +165,91 @@ html.dark .as-btn.amber {
 	opacity: 1;
 }
 
+/* ── Quick navigation bar ───────────────────────────────────────────────────── */
+
+.quick-nav {
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	background: #f5f5f3;
+	border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+	display: flex;
+	justify-content: center;
+	gap: 4px;
+	padding: 6px 16px;
+	margin-bottom: 18px;
+}
+
+html.dark .quick-nav {
+	background: #1a1a18;
+	border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.quick-nav-link {
+	padding: 5px 16px;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #555;
+	text-decoration: none;
+	transition:
+		background 0.12s,
+		color 0.12s;
+}
+
+.quick-nav-link:hover {
+	background: rgba(37, 99, 235, 0.08);
+	color: #2563eb;
+}
+
+.quick-nav-link.active {
+	background: rgba(37, 99, 235, 0.1);
+	color: #2563eb;
+}
+
+html.dark .quick-nav-link {
+	color: #aaa;
+}
+
+html.dark .quick-nav-link:hover,
+html.dark .quick-nav-link.active {
+	background: rgba(37, 99, 235, 0.18);
+	color: #60a5fa;
+}
+
+/* ── Page footer ────────────────────────────────────────────────────────────── */
+
+footer {
+	border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+	margin-top: 48px;
+	padding: 20px;
+	font-size: 11px;
+	color: #888;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	text-align: center;
+}
+
+html.dark footer {
+	border-color: rgba(255, 255, 255, 0.1);
+}
+
+footer a {
+	color: #2563eb;
+	text-decoration: none;
+}
+
+html.dark footer a {
+	color: #60a5fa;
+}
+
+.footer-sep {
+	opacity: 0.4;
+}
+
 /* ── Pomodoro timer widget ──────────────────────────────────────────────────── */
 
 #pomo-host {

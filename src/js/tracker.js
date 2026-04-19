@@ -3,6 +3,23 @@ import { createRoot } from 'react-dom/client';
 
 const TRACKER_MARKER = 'cka-tracker-progress-v1';
 const HANDLE_KEY = 'tracker-handle';
+const UI_KEY = 'cka-tracker-ui';
+
+function loadUi() {
+	try {
+		return JSON.parse(localStorage.getItem(UI_KEY)) || {};
+	} catch (_) {
+		return {};
+	}
+}
+
+function saveUi(tab, open) {
+	try {
+		localStorage.setItem(UI_KEY, JSON.stringify({ tab, open }));
+	} catch (_) {
+		/* storage unavailable */
+	}
+}
 const ACCENT = [
 	'#60a5fa',
 	'#a78bfa',
@@ -58,13 +75,28 @@ function useTheme() {
 function App() {
 	const theme = useTheme();
 	const [done, setDone] = useState({});
-	const [open, setOpen] = useState({});
-	const [tab, setTab] = useState('plan');
+	const [open, setOpen] = useState(function () {
+		return loadUi().open || {};
+	});
+	const [tab, setTab] = useState(function () {
+		return loadUi().tab || 'plan';
+	});
 	const [copied, setCopied] = useState(null);
 	const [focusMode, setFocusMode] = useState(false);
 	const [showHelp, setShowHelp] = useState(false);
 	const doneRef = useRef(done);
+	const tabRef = useRef(tab);
+	const openRef = useRef(open);
 	const mounted = useRef(false);
+
+	useEffect(
+		function () {
+			tabRef.current = tab;
+			openRef.current = open;
+			saveUi(tab, open);
+		},
+		[tab, open]
+	);
 
 	useEffect(
 		function () {
@@ -328,7 +360,17 @@ function App() {
 		>
 			<div style={{ marginBottom: 20 }}>
 				<h1 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 500, color: theme.text }}>
-					<a href="index.html" style={{ color: 'inherit', textDecoration: 'none' }}>
+					<a
+						href="index.html"
+						style={{
+							color: 'inherit',
+							textDecoration: 'none',
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: 8,
+						}}
+					>
+						<img src="favicon.svg" alt="" style={{ width: 22, height: 22 }} />
 						CKA study tracker
 					</a>
 				</h1>
