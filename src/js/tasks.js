@@ -9,6 +9,7 @@ let fileHandle = null;
 let done = {};
 let totalTasks = 0,
 	completedTasks = 0;
+let focusMode = false;
 
 function taskCbs() {
 	return { pickFile, reEnable, manualExport, manualImport };
@@ -155,6 +156,24 @@ function updateOverall() {
 }
 
 // ── UI builders ──────────────────────────────────────────────────────────────
+
+function switchTab(idx) {
+	const tabs = document.querySelectorAll('.tab-btn');
+	const panels = document.querySelectorAll('.section');
+	if (idx < 0 || idx >= tabs.length) return;
+	tabs.forEach((b) => b.classList.remove('active'));
+	panels.forEach((p) => p.classList.remove('active'));
+	tabs[idx].classList.add('active');
+	document.getElementById('panel-' + idx).classList.add('active');
+	tabs[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function getActiveTabIdx() {
+	const tabs = [...document.querySelectorAll('.tab-btn')];
+	const idx = tabs.findIndex((b) => b.classList.contains('active'));
+	return idx >= 0 ? idx : 0;
+}
+
 function copyCode(el, text) {
 	navigator.clipboard.writeText(text).catch(() => {});
 	const hint = el.querySelector('.copy-hint');
@@ -171,12 +190,7 @@ function buildTabs() {
 		btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
 		btn.textContent = s.title;
 		btn.dataset.idx = i;
-		btn.onclick = () => {
-			document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
-			document.querySelectorAll('.section').forEach((p) => p.classList.remove('active'));
-			btn.classList.add('active');
-			document.getElementById('panel-' + i).classList.add('active');
-		};
+		btn.onclick = () => switchTab(i);
 		tabsEl.appendChild(btn);
 	});
 }
@@ -331,7 +345,195 @@ function buildPanels() {
 	});
 }
 
+// ── Focus mode ────────────────────────────────────────────────────────────────
+
+function toggleFocusMode() {
+	focusMode = !focusMode;
+	document.querySelector('.wrap')?.classList.toggle('focus-mode', focusMode);
+	const focusBtn = document.getElementById('focus-btn');
+	if (focusBtn) focusBtn.textContent = focusMode ? '⊡ Exit focus' : '⊞ Focus mode';
+	if (focusMode) asFlash('Focus mode on · Esc to exit');
+}
+
+// ── Task navigation ───────────────────────────────────────────────────────────
+
+function findFirstIncomplete() {
+	for (let si = 0; si < SECTIONS.length; si++) {
+		for (const task of SECTIONS[si].tasks) {
+			if (!done[task.id]) return { sectionIdx: si, taskId: task.id };
+		}
+	}
+	return null;
+}
+
+function jumpToTask(sectionIdx, taskId) {
+	if (sectionIdx == null) return;
+	switchTab(sectionIdx);
+	if (!taskId) return;
+	setTimeout(() => {
+		const btn = document.querySelector(`[data-taskid="${taskId}"]`);
+		const card = btn?.closest('.task-card');
+		if (!card) return;
+		card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		document
+			.querySelectorAll('.task-highlight')
+			.forEach((el) => el.classList.remove('task-highlight'));
+		card.classList.add('task-highlight');
+	}, 80);
+}
+
+function jumpToRandomTask() {
+	const pool = [];
+	SECTIONS.forEach((s, si) => {
+		s.tasks.forEach((t) => {
+			if (!done[t.id]) pool.push({ sectionIdx: si, taskId: t.id });
+		});
+	});
+	if (!pool.length) {
+		asFlash('🎉 All tasks done!');
+		return;
+	}
+	const pick = pool[Math.floor(Math.random() * pool.length)];
+	jumpToTask(pick.sectionIdx, pick.taskId);
+	asFlash('🎲 Random task!');
+}
+
+// ── Controls bar ─────────────────────────────────────────────────────────────
+
+function buildControls() {
+	const tabsEl = document.getElementById('tabs');
+	if (!tabsEl) return;
+
+	const bar = document.createElement('div');
+	bar.id = 'task-controls';
+
+	const continueBtn = document.createElement('button');
+	continueBtn.id = 'continue-btn';
+	continueBtn.className = 'ctrl-btn';
+	continueBtn.title = 'Jump to next incomplete task (C)';
+	continueBtn.textContent = '▶ Next incomplete task';
+	continueBtn.onclick = () => {
+		const info = findFirstIncomplete();
+		if (info) jumpToTask(info.sectionIdx, info.taskId);
+		else asFlash('🎉 All tasks done!');
+	};
+
+	const randBtn = document.createElement('button');
+	randBtn.className = 'ctrl-btn';
+	randBtn.title = 'Jump to a random incomplete task (R)';
+	randBtn.textContent = '🎲 Random task';
+	randBtn.onclick = jumpToRandomTask;
+
+	const focusBtn = document.createElement('button');
+	focusBtn.id = 'focus-btn';
+	focusBtn.className = 'ctrl-btn';
+	focusBtn.title = 'Show only the active section (F)';
+	focusBtn.textContent = '⊞ Focus mode';
+	focusBtn.onclick = toggleFocusMode;
+
+	const kbdBtn = document.createElement('button');
+	kbdBtn.className = 'ctrl-btn';
+	kbdBtn.title = 'Keyboard shortcuts (?)';
+	kbdBtn.textContent = '⌨️ Keys';
+	kbdBtn.onclick = () => {
+		if (document.getElementById('kbd-help')) removeKbdHelp();
+		else buildKbdHelp();
+	};
+
+	bar.appendChild(continueBtn);
+	bar.appendChild(randBtn);
+	bar.appendChild(focusBtn);
+	bar.appendChild(kbdBtn);
+	tabsEl.parentNode.insertBefore(bar, tabsEl);
+}
+
+// ── Keyboard shortcut help ────────────────────────────────────────────────────
+
+function buildKbdHelp() {
+	if (document.getElementById('kbd-help')) return;
+	const overlay = document.createElement('div');
+	overlay.id = 'kbd-help';
+	const box = document.createElement('div');
+	box.id = 'kbd-help-box';
+	const title = document.createElement('h3');
+	title.textContent = '⌨️ Keyboard shortcuts';
+	box.appendChild(title);
+	[
+		['n', 'Next section'],
+		['p', 'Previous section'],
+		['r', 'Random incomplete task'],
+		['c', 'Continue (first incomplete)'],
+		['f', 'Toggle focus mode'],
+		['?', 'Show / hide this help'],
+		['Esc', 'Close overlays / exit focus'],
+	].forEach(([keys, desc]) => {
+		const row = document.createElement('div');
+		row.className = 'kbd-row';
+		const kbdEl = document.createElement('span');
+		kbdEl.className = 'kbd';
+		kbdEl.textContent = keys;
+		const descEl = document.createElement('span');
+		descEl.textContent = desc;
+		row.appendChild(kbdEl);
+		row.appendChild(descEl);
+		box.appendChild(row);
+	});
+	const closeEl = document.createElement('button');
+	closeEl.id = 'kbd-help-close';
+	closeEl.textContent = 'Close';
+	closeEl.onclick = removeKbdHelp;
+	box.appendChild(closeEl);
+	overlay.appendChild(box);
+	overlay.addEventListener('click', (e) => {
+		if (e.target === overlay) removeKbdHelp();
+	});
+	document.body.appendChild(overlay);
+}
+
+function removeKbdHelp() {
+	document.getElementById('kbd-help')?.remove();
+}
+
+function initKeyboardShortcuts() {
+	document.addEventListener('keydown', (e) => {
+		if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+		if (e.ctrlKey || e.altKey || e.metaKey) return;
+		const tabCount = document.querySelectorAll('.tab-btn').length;
+		const idx = getActiveTabIdx();
+		switch (e.key) {
+			case 'n':
+				switchTab((idx + 1) % tabCount);
+				break;
+			case 'p':
+				switchTab((idx - 1 + tabCount) % tabCount);
+				break;
+			case 'r':
+				jumpToRandomTask();
+				break;
+			case 'c': {
+				const info = findFirstIncomplete();
+				if (info) jumpToTask(info.sectionIdx, info.taskId);
+				else asFlash('🎉 All tasks done!');
+				break;
+			}
+			case 'f':
+				toggleFocusMode();
+				break;
+			case '?':
+				if (document.getElementById('kbd-help')) removeKbdHelp();
+				else buildKbdHelp();
+				break;
+			case 'Escape':
+				removeKbdHelp();
+				if (focusMode) toggleFocusMode();
+				break;
+		}
+	});
+}
+
 buildTabs();
 buildPanels();
+buildControls();
 updateOverall();
 initStorage();
+initKeyboardShortcuts();

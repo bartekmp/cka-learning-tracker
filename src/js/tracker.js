@@ -61,6 +61,8 @@ function App() {
 	const [open, setOpen] = useState({});
 	const [tab, setTab] = useState('plan');
 	const [copied, setCopied] = useState(null);
+	const [focusMode, setFocusMode] = useState(false);
+	const [showHelp, setShowHelp] = useState(false);
 	const doneRef = useRef(done);
 	const mounted = useRef(false);
 
@@ -199,6 +201,31 @@ function App() {
 		[done]
 	);
 
+	useEffect(function () {
+		function handleKey(e) {
+			if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+			if (e.ctrlKey || e.altKey || e.metaKey) return;
+			if (e.key === 'f') {
+				setFocusMode(function (v) {
+					return !v;
+				});
+			} else if (e.key === 'c') {
+				continueStudying();
+			} else if (e.key === '?') {
+				setShowHelp(function (v) {
+					return !v;
+				});
+			} else if (e.key === 'Escape') {
+				setShowHelp(false);
+				setFocusMode(false);
+			}
+		}
+		document.addEventListener('keydown', handleKey);
+		return function () {
+			document.removeEventListener('keydown', handleKey);
+		};
+	}, []); // empty deps intentional — continueStudying uses stable refs
+
 	function toggleDone(id) {
 		setDone(function (previous) {
 			return { ...previous, [id]: !previous[id] };
@@ -206,7 +233,18 @@ function App() {
 	}
 
 	function toggleOpen(id) {
+		const isSection = SECTIONS.some(function (s) {
+			return s.id === id;
+		});
 		setOpen(function (previous) {
+			if (focusMode && isSection && !previous[id]) {
+				const next = Object.assign({}, previous);
+				SECTIONS.forEach(function (s) {
+					if (s.id !== id) next[s.id] = false;
+				});
+				next[id] = true;
+				return next;
+			}
 			return { ...previous, [id]: !previous[id] };
 		});
 	}
@@ -217,6 +255,37 @@ function App() {
 		setTimeout(function () {
 			setCopied(null);
 		}, 1800);
+	}
+
+	function findNextIncomplete() {
+		const d = doneRef.current;
+		for (let si = 0; si < SECTIONS.length; si++) {
+			const section = SECTIONS[si];
+			for (let ti = 0; ti < section.topics.length; ti++) {
+				const topic = section.topics[ti];
+				const hasIncomplete = topic.tasks.some(function (_, taskIndex) {
+					return !d[topic.id + ':' + taskIndex];
+				});
+				if (hasIncomplete) return { sectionId: section.id, topicId: topic.id };
+			}
+		}
+		return null;
+	}
+
+	function continueStudying() {
+		const next = findNextIncomplete();
+		if (!next) return;
+		setTab('plan');
+		setOpen(function (prev) {
+			return Object.assign({}, prev, {
+				[next.sectionId]: true,
+				[next.topicId]: true,
+			});
+		});
+		setTimeout(function () {
+			const el = document.getElementById('sec-' + next.sectionId);
+			if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}, 80);
 	}
 
 	function getSectionStats(section, index) {
@@ -317,6 +386,68 @@ function App() {
 				<p style={{ margin: '5px 0 0', fontSize: 12, color: theme.textTer }}>
 					{overall}% overall complete
 				</p>
+				<div style={{ display: 'flex', gap: 8, margin: '10px 0 4px', flexWrap: 'wrap' }}>
+					{[
+						[
+							'▶ Next incomplete topic',
+							continueStudying,
+							'Jump to next incomplete topic (C)',
+							false,
+						],
+						[
+							focusMode ? '⊡ Exit focus' : '⊞ Focus mode',
+							function () {
+								setFocusMode(function (v) {
+									return !v;
+								});
+							},
+							'One section at a time (F)',
+							focusMode,
+						],
+						[
+							'⌨️ Keys',
+							function () {
+								setShowHelp(function (v) {
+									return !v;
+								});
+							},
+							'Keyboard shortcuts (?)',
+							showHelp,
+						],
+					].map(function (entry) {
+						return (
+							<button
+								key={entry[0]}
+								onClick={entry[1]}
+								title={entry[2]}
+								style={{
+									padding: '5px 13px',
+									borderRadius: 8,
+									border:
+										'0.5px solid ' +
+										(entry[3] || entry[0] === '▶ Next incomplete topic'
+											? theme.textInfo + '66'
+											: theme.border),
+									background:
+										entry[3] || entry[0] === '▶ Next incomplete topic'
+											? theme.textInfo + '18'
+											: 'transparent',
+									cursor: 'pointer',
+									fontSize: 12,
+									fontWeight: entry[0] === '▶ Next incomplete topic' ? 600 : 500,
+									color:
+										entry[3] || entry[0] === '▶ Next incomplete topic'
+											? theme.textInfo
+											: theme.textSec,
+									fontFamily: 'inherit',
+									whiteSpace: 'nowrap',
+								}}
+							>
+								{entry[0]}
+							</button>
+						);
+					})}
+				</div>
 			</div>
 
 			<div
@@ -368,6 +499,7 @@ function App() {
 					return (
 						<div
 							key={section.id}
+							id={'sec-' + section.id}
 							style={{
 								background: theme.bgSec,
 								border: '0.5px solid ' + theme.border,
@@ -375,6 +507,8 @@ function App() {
 								marginBottom: 10,
 								overflow: 'hidden',
 								borderLeft: '3px solid ' + stats.color,
+								opacity: focusMode && !sectionOpen ? 0.4 : 1,
+								transition: 'opacity 0.2s',
 							}}
 						>
 							<div
@@ -934,15 +1068,114 @@ function App() {
 					</a>{' '}
 					·{' '}
 					<a
-						href="https://pomofocus.io"
+						href="https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/"
 						target="_blank"
 						rel="noreferrer"
 						style={{ color: theme.linkColor }}
 					>
-						Pomofocus (Pomodoro timer)
+						KodeKloud CKA course (Udemy)
 					</a>
 				</p>
 			</div>
+			{showHelp && (
+				<div
+					style={{
+						position: 'fixed',
+						inset: 0,
+						background: 'rgba(0,0,0,0.48)',
+						zIndex: 10000,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+					}}
+					onClick={function (e) {
+						if (e.target === e.currentTarget) setShowHelp(false);
+					}}
+				>
+					<div
+						style={{
+							background: theme.bgSec,
+							borderRadius: 14,
+							padding: '22px 24px 18px',
+							minWidth: 280,
+							maxWidth: 360,
+							boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+						}}
+					>
+						<h3
+							style={{
+								margin: '0 0 14px',
+								fontSize: 14,
+								fontWeight: 600,
+								color: theme.text,
+							}}
+						>
+							⌨️ Keyboard shortcuts
+						</h3>
+						{[
+							['c', 'Continue to next incomplete topic'],
+							['f', 'Toggle focus mode (one section at a time)'],
+							['?', 'Show / hide this help'],
+							['Esc', 'Close overlays / exit focus mode'],
+						].map(function (row) {
+							return (
+								<div
+									key={row[0]}
+									style={{
+										display: 'flex',
+										gap: 10,
+										alignItems: 'center',
+										marginBottom: 8,
+										fontSize: 13,
+										color: theme.textSec,
+									}}
+								>
+									<span
+										style={{
+											display: 'inline-flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											minWidth: 38,
+											height: 22,
+											padding: '0 6px',
+											borderRadius: 5,
+											border: '1px solid ' + theme.border,
+											background: theme.bgTer,
+											fontSize: 11,
+											fontWeight: 600,
+											color: theme.text,
+											flexShrink: 0,
+											whiteSpace: 'nowrap',
+										}}
+									>
+										{row[0]}
+									</span>
+									<span>{row[1]}</span>
+								</div>
+							);
+						})}
+						<button
+							onClick={function () {
+								setShowHelp(false);
+							}}
+							style={{
+								marginTop: 12,
+								width: '100%',
+								padding: 8,
+								borderRadius: 8,
+								border: '0.5px solid ' + theme.border,
+								background: 'transparent',
+								cursor: 'pointer',
+								fontSize: 13,
+								color: theme.textSec,
+								fontFamily: 'inherit',
+							}}
+						>
+							Close
+						</button>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
