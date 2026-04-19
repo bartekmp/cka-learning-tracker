@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+	<title>CKA Learning Tracker</title>
+	<!-- Kubernetes-blue hexagon background -->
+	<polygon points="16,1 29,8.5 29,23.5 16,31 3,23.5 3,8.5" fill="#326CE5" />
+	<!-- Mortarboard flat top (diamond) -->
+	<polygon points="16,7 27,12 16,17 5,12" fill="white" />
+	<!-- Cap body -->
+	<rect x="11.5" y="17" width="9" height="5" rx="1.5" fill="white" opacity="0.88" />
+	<!-- Tassel: line + dot hanging from right corner -->
+	<line x1="27" y1="12" x2="27" y2="20.5" stroke="white" stroke-width="2" stroke-linecap="round" />
+	<circle cx="27" cy="22" r="2" fill="white" />
+</svg>

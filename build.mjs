@@ -47,7 +47,13 @@ const htmlPages = ['index.html', 'cka-tracker.html', 'cka-practice-tasks.html'];
 await Promise.all(
     htmlPages.map(async (file) => {
         const filePath = path.join(distDir, file);
-        const content = await readFile(filePath, 'utf8');
-        await writeFile(filePath, content.replaceAll('__APP_VERSION__', `v${version}`));
+        let content = await readFile(filePath, 'utf8');
+        content = content.replaceAll('__APP_VERSION__', `v${version}`);
+        // Cache-bust all local CSS and JS asset references
+        content = content.replace(
+            /(href|src)="((css|data|js)\/[^"]+\.(css|js))"/g,
+            `$1="$2?v=${version}"`,
+        );
+        await writeFile(filePath, content);
     }),
 );
