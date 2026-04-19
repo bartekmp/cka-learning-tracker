@@ -2,7 +2,9 @@
 
 **Live site: <https://bartekmp.github.io/cka-learning-tracker/>**
 
-A lightweight static study site for the Certified Kubernetes Administrator exam.
+A lightweight static study site for the Certified Kubernetes Administrator exam — built specifically with **neurodivergent learners** in mind, particularly people with **ADHD**.
+
+The core idea: passive video courses are hard to follow when your brain needs active engagement. This toolkit breaks CKA preparation into small, concrete chunks — checkable topics, hands-on practice tasks tied directly to each concept, and copy-ready commands — so you always know exactly what to do next and can feel progress without losing the thread.
 
 It includes:
 
@@ -94,3 +96,7 @@ The [Certified Kubernetes Administrator (CKA) with Practice Tests](https://www.u
 ## License
 
 This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
+
+## Built with AI assistance
+
+This project was built with the help of **[Claude](https://claude.ai/)**.
