@@ -3,6 +3,7 @@
 
 const FILE_MARKER = 'cka-tasks-progress-v1';
 const HANDLE_KEY = 'tasks-handle';
+const UI_KEY = 'cka-tasks-ui';
 
 // ── State ────────────────────────────────────────────────────────────────────
 let fileHandle = null;
@@ -166,6 +167,11 @@ function switchTab(idx) {
 	tabs[idx].classList.add('active');
 	document.getElementById('panel-' + idx).classList.add('active');
 	tabs[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+	try {
+		localStorage.setItem(UI_KEY, idx);
+	} catch (_) {
+		/* storage unavailable */
+	}
 }
 
 function getActiveTabIdx() {
@@ -535,5 +541,14 @@ buildTabs();
 buildPanels();
 buildControls();
 updateOverall();
+// Restore last active tab
+(function () {
+	try {
+		const saved = parseInt(localStorage.getItem(UI_KEY), 10);
+		if (!isNaN(saved) && saved > 0) switchTab(saved);
+	} catch (_) {
+		/* storage unavailable */
+	}
+})();
 initStorage();
 initKeyboardShortcuts();
