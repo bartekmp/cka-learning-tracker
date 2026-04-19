@@ -87,6 +87,10 @@ If the repository is published as `bartekmp/cka-learning-tracker`, the site URL 
 https://bartekmp.github.io/cka-learning-tracker/
 ```
 
+## Notable Learning Resource
+
+The [Certified Kubernetes Administrator (CKA) with Practice Tests](https://www.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/) course by **Mumshad Mannambeth** and **KodeKloud** on Udemy is a highly regarded resource for CKA preparation. It covers all exam domains — core concepts, scheduling, storage, networking, security, and more — with over 26 hours of video and hands-on browser-based labs that require no local setup.
+
 ## License
 
 This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
