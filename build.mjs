@@ -2,9 +2,10 @@ import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import pkg from './package.json' with { type: 'json' };
 
-const { version } = pkg;
+const { version } = JSON.parse(
+    await readFile(new URL('./package.json', import.meta.url), 'utf8'),
+);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const srcDir = path.join(__dirname, 'src');
