@@ -328,7 +328,9 @@ function App() {
 		>
 			<div style={{ marginBottom: 20 }}>
 				<h1 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 500, color: theme.text }}>
-					CKA study tracker
+					<a href="index.html" style={{ color: 'inherit', textDecoration: 'none' }}>
+						CKA study tracker
+					</a>
 				</h1>
 				<p style={{ margin: '0 0 10px', fontSize: 13, color: theme.textTer }}>
 					~77 hrs across 9 sections · progress saved in your browser

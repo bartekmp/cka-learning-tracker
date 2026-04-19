@@ -147,7 +147,7 @@ Vanilla JS IIFE that self-appends to `<body>` on every page. State shape:
 
 ### Kubernetes version
 
-The CKA exam currently targets **Kubernetes 1.32** (verify at [training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/) and [kubernetes.io/releases/](https://kubernetes.io/releases/)). When a new minor version becomes the exam target:
+The CKA exam currently targets **Kubernetes 1.35** (verify at [training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/) and [kubernetes.io/releases/](https://kubernetes.io/releases/)). When a new minor version becomes the exam target:
 
 - Review `src/data/tracker-data.js` and `src/data/tasks-data.js` for any commands, API versions, or feature descriptions that changed.
 - Pay particular attention to: deprecated `kubectl` flags, new default container runtimes, changes to kubeadm bootstrap flow, Gateway API vs Ingress status, CSI migration completions.
