@@ -24,6 +24,7 @@ await Promise.all([
     cp(path.join(srcDir, 'cka-practice-tasks.html'), path.join(distDir, 'cka-practice-tasks.html')),
     cp(path.join(srcDir, '404.html'), path.join(distDir, '404.html')),
     cp(path.join(srcDir, 'robots.txt'), path.join(distDir, 'robots.txt')),
+    cp(path.join(srcDir, 'favicon.svg'), path.join(distDir, 'favicon.svg')),
 ]);
 
 await build({
