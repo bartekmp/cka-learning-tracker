@@ -156,6 +156,51 @@ html.dark .pill {
 	color: #16a34a;
 }
 
+/* Exam relevance tags */
+.pill.tag-essential {
+	background: rgba(37, 99, 235, 0.09);
+	color: #2563eb;
+}
+
+html.dark .pill.tag-essential {
+	background: rgba(96, 165, 250, 0.12);
+	color: #60a5fa;
+}
+
+.pill.tag-optional {
+	background: rgba(0, 0, 0, 0.05);
+	color: #999;
+}
+
+html.dark .pill.tag-optional {
+	background: rgba(255, 255, 255, 0.06);
+	color: #666;
+}
+
+/* Completed task card */
+.task-card.done {
+	background: rgba(34, 197, 94, 0.04);
+}
+
+html.dark .task-card.done {
+	background: rgba(74, 222, 128, 0.05);
+}
+
+.done-badge {
+	display: none;
+	background: rgba(34, 197, 94, 0.12);
+	color: #16a34a;
+}
+
+html.dark .done-badge {
+	background: rgba(74, 222, 128, 0.12);
+	color: #4ade80;
+}
+
+.task-card.done .done-badge {
+	display: inline-block;
+}
+
 /* Hint toggle */
 .hint-toggle {
 	display: flex;
