@@ -105,6 +105,7 @@ function refreshAllButtons() {
 		if (!tid) return;
 		btn.className = 'done-btn' + (done[tid] ? ' marked' : '');
 		btn.textContent = done[tid] ? '✓ Completed' : 'Mark as completed';
+		btn.closest('.task-card')?.classList.toggle('done', !!done[tid]);
 	});
 }
 
@@ -221,7 +222,7 @@ function buildPanels() {
 
 		s.tasks.forEach((task, ti) => {
 			const card = document.createElement('div');
-			card.className = 'task-card';
+			card.className = 'task-card' + (done[task.id] ? ' done' : '');
 			card.style.borderLeftColor = s.color;
 
 			const diffClass =
@@ -252,6 +253,15 @@ function buildPanels() {
 			pill.className = 'pill ' + diffClass;
 			pill.textContent = task.difficulty;
 			metaEl.appendChild(pill);
+			const tagPill = document.createElement('span');
+			const isOptional = task.tag === 'optional';
+			tagPill.className = 'pill tag-' + (isOptional ? 'optional' : 'essential');
+			tagPill.textContent = isOptional ? 'optional' : 'essential';
+			metaEl.appendChild(tagPill);
+			const doneBadge = document.createElement('span');
+			doneBadge.className = 'pill done-badge';
+			doneBadge.textContent = '✓ Done';
+			metaEl.appendChild(doneBadge);
 
 			hdrDiv.appendChild(numEl);
 			hdrDiv.appendChild(titleEl);
@@ -330,6 +340,7 @@ function buildPanels() {
 				autoSave();
 				doneBtn.className = 'done-btn' + (done[task.id] ? ' marked' : '');
 				doneBtn.textContent = done[task.id] ? '✓ Completed' : 'Mark as completed';
+				card.classList.toggle('done', done[task.id]);
 				updateOverall();
 			};
 			sol.appendChild(doneBtn);
