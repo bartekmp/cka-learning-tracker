@@ -419,7 +419,7 @@ const SECTIONS = [
 				title: 'Configure node affinity for flexible pod placement',
 				difficulty: 'medium',
 				scenario:
-					'Node affinity gives you more expressive scheduling rules than nodeSelector. Create two pods: one with a soft preference for a labeled node (it can run elsewhere), and one with a hard requirement (it stays Pending if the label is missing). Use Killercoda\'s 2-node Kubernetes playground for a realistic multi-node environment.',
+					"Node affinity gives you more expressive scheduling rules than nodeSelector. Create two pods: one with a soft preference for a labeled node (it can run elsewhere), and one with a hard requirement (it stays Pending if the label is missing). Use Killercoda's 2-node Kubernetes playground for a realistic multi-node environment.",
 				steps: [
 					{
 						label: 'Step 1 — label a worker node',
@@ -644,7 +644,9 @@ const SECTIONS = [
 					{
 						label: 'Step 3 — add an oversized resource block',
 						desc: 'Under containers[0], add resources requesting more CPU than any node has:',
-						code: ['resources:\n  requests:\n    cpu: "100"   # 100 full cores — no node has this'],
+						code: [
+							'resources:\n  requests:\n    cpu: "100"   # 100 full cores — no node has this',
+						],
 					},
 					{
 						label: 'Step 4 — apply and observe Pending',
@@ -839,8 +841,7 @@ const SECTIONS = [
 						code: ['kubectl describe job hash-job'],
 					},
 				],
-				expected:
-					'COMPLETIONS shows 1/1. Logs show the SHA256 hash of "cka-exam".',
+				expected: 'COMPLETIONS shows 1/1. Logs show the SHA256 hash of "cka-exam".',
 				note: 'restartPolicy must be Never or OnFailure in a Job — Always is not allowed. backoffLimit controls how many times the pod is retried before the Job is marked Failed.',
 			},
 			{
@@ -868,15 +869,13 @@ const SECTIONS = [
 						desc: '',
 						code: [
 							'kubectl get jobs',
-							'kubectl logs -l job-name=$(kubectl get jobs --no-headers | head -1 | awk \'{print $1}\')',
+							"kubectl logs -l job-name=$(kubectl get jobs --no-headers | head -1 | awk '{print $1}')",
 						],
 					},
 					{
 						label: 'Step 4 — suspend the CronJob',
 						desc: '',
-						code: [
-							"kubectl patch cronjob heartbeat -p '{\"spec\":{\"suspend\":true}}'",
-						],
+						code: ['kubectl patch cronjob heartbeat -p \'{"spec":{"suspend":true}}\''],
 					},
 					{
 						label: 'Step 5 — verify no new Jobs are created',
@@ -886,9 +885,7 @@ const SECTIONS = [
 					{
 						label: 'Step 6 — re-enable it',
 						desc: '',
-						code: [
-							"kubectl patch cronjob heartbeat -p '{\"spec\":{\"suspend\":false}}'",
-						],
+						code: ['kubectl patch cronjob heartbeat -p \'{"spec":{"suspend":false}}\''],
 					},
 				],
 				expected:
@@ -938,12 +935,17 @@ const SECTIONS = [
 					{
 						label: 'Step 6 — watch the HPA scale out',
 						desc: 'Open another terminal. Replicas increase within 1–2 minutes.',
-						code: ['kubectl get hpa php-apache -w', 'kubectl get pods -l app=php-apache'],
+						code: [
+							'kubectl get hpa php-apache -w',
+							'kubectl get pods -l app=php-apache',
+						],
 					},
 					{
 						label: 'Step 7 — stop the load and watch scale-in',
 						desc: 'Ctrl+C the load pod. Scale-in has a default 5-minute cooldown to prevent flapping.',
-						code: ['kubectl get hpa php-apache -w  # replicas drop back to 1 after cooldown'],
+						code: [
+							'kubectl get hpa php-apache -w  # replicas drop back to 1 after cooldown',
+						],
 					},
 					{
 						label: 'Step 8 — inspect HPA details',
@@ -1117,7 +1119,9 @@ const SECTIONS = [
 					{
 						label: 'Step 6 — drain each worker node (one at a time)',
 						desc: 'Run this from the control plane.',
-						code: ['kubectl drain <worker-node> --ignore-daemonsets --delete-emptydir-data'],
+						code: [
+							'kubectl drain <worker-node> --ignore-daemonsets --delete-emptydir-data',
+						],
 					},
 					{
 						label: 'Step 7 — upgrade kubeadm and kubelet on the worker',
@@ -1132,8 +1136,7 @@ const SECTIONS = [
 						code: ['kubectl uncordon <worker-node>', 'kubectl get nodes'],
 					},
 				],
-				expected:
-					'All nodes show the new version in the VERSION column and Ready status.',
+				expected: 'All nodes show the new version in the VERSION column and Ready status.',
 				note: 'You can only upgrade one minor version at a time (1.30 → 1.31, not 1.30 → 1.32). Always upgrade the control plane before worker nodes.',
 			},
 			{
@@ -1271,6 +1274,96 @@ const SECTIONS = [
 				expected:
 					'dev-nginx deploys with 1 replica and nginx:1.25. prod-nginx deploys with 3 replicas and nginx:1.27.',
 				note: 'Kustomize is built into kubectl — no install needed. kubectl apply -k applies a kustomization. kubectl kustomize just renders YAML without applying. The images: field is the cleanest way to swap image tags across environments.',
+			},
+			{
+				id: 't47',
+				tag: 'essential',
+				title: 'Bootstrap a cluster from scratch with kubeadm',
+				difficulty: 'hard',
+				scenario:
+					'Provision a single-node Kubernetes cluster using kubeadm on a fresh Ubuntu node. Covers pre-flight checks, container runtime setup, kubeadm init, CNI installation, and joining a worker node. Use the Killercoda "Kubernetes 1-node" or "2-node" playground for a real multi-node environment.',
+				steps: [
+					{
+						label: 'Step 1 — disable swap (required by kubelet)',
+						desc: 'Swap must be off or kubelet refuses to start.',
+						code: [
+							'sudo swapoff -a',
+							"# Make permanent:\nsudo sed -i '/ swap / s/^/#/' /etc/fstab",
+						],
+					},
+					{
+						label: 'Step 2 — load required kernel modules',
+						desc: '',
+						code: [
+							'cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf\noverlay\nbr_netfilter\nEOF',
+							'sudo modprobe overlay && sudo modprobe br_netfilter',
+							'cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf\nnet.bridge.bridge-nf-call-iptables=1\nnet.bridge.bridge-nf-call-ip6tables=1\nnet.ipv4.ip_forward=1\nEOF',
+							'sudo sysctl --system',
+						],
+					},
+					{
+						label: 'Step 3 — install containerd',
+						desc: 'The default CRI for kubeadm clusters since 1.24.',
+						code: [
+							'sudo apt-get update && sudo apt-get install -y containerd',
+							'sudo mkdir -p /etc/containerd',
+							'containerd config default | sudo tee /etc/containerd/config.toml',
+							"# Enable SystemdCgroup:\nsudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml",
+							'sudo systemctl restart containerd && sudo systemctl enable containerd',
+						],
+					},
+					{
+						label: 'Step 4 — install kubeadm, kubelet, kubectl',
+						desc: '',
+						code: [
+							'sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl',
+							'curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg',
+							"echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list",
+							'sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl',
+							'sudo apt-mark hold kubelet kubeadm kubectl',
+						],
+					},
+					{
+						label: 'Step 5 — initialise the control plane',
+						desc: "Replace <control-plane-ip> with the node's IP address.",
+						code: [
+							'sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=<control-plane-ip>',
+						],
+					},
+					{
+						label: 'Step 6 — configure kubectl for the new cluster',
+						desc: '',
+						code: [
+							'mkdir -p $HOME/.kube',
+							'sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config',
+							'sudo chown $(id -u):$(id -g) $HOME/.kube/config',
+						],
+					},
+					{
+						label: 'Step 7 — install a CNI plugin (Calico)',
+						desc: 'Without CNI, pods cannot communicate and CoreDNS stays Pending.',
+						code: [
+							'kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml',
+							'kubectl get pods -n kube-system -w',
+						],
+					},
+					{
+						label: 'Step 8 — join a worker node',
+						desc: 'Run the join command printed by kubeadm init on the worker node.',
+						code: [
+							'# On the control plane — regenerate the join command if needed:\nkubeadm token create --print-join-command',
+							'# On the worker node:\nsudo kubeadm join <control-plane-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>',
+						],
+					},
+					{
+						label: 'Step 9 — verify both nodes are Ready',
+						desc: '',
+						code: ['kubectl get nodes -o wide'],
+					},
+				],
+				expected:
+					'Both nodes show STATUS=Ready. kubectl get pods -n kube-system shows all system pods Running.',
+				note: 'Killercoda playground: search "Kubernetes Kubeadm" — it gives a 2-node Ubuntu environment with no pre-installed cluster. The pod-network-cidr 192.168.0.0/16 matches Calico defaults; use 10.244.0.0/16 if you choose Flannel instead.',
 			},
 		],
 	},
@@ -1460,8 +1553,7 @@ const SECTIONS = [
 						],
 					},
 				],
-				expected:
-					'list secrets → yes in any namespace. create secrets → no.',
+				expected: 'list secrets → yes in any namespace. create secrets → no.',
 				note: 'ClusterRole + ClusterRoleBinding = cluster-wide access. ClusterRole + RoleBinding (namespace-scoped) = access only in that namespace. The ClusterRole is reusable across both.',
 			},
 			{
@@ -1506,7 +1598,7 @@ const SECTIONS = [
 						label: 'Step 6 — retrieve the signed certificate',
 						desc: '',
 						code: [
-							'kubectl get csr dev-jane -o jsonpath=\'{.status.certificate}\' | base64 -d > dev-jane.crt',
+							"kubectl get csr dev-jane -o jsonpath='{.status.certificate}' | base64 -d > dev-jane.crt",
 							'openssl x509 -in dev-jane.crt -text -noout | grep Subject',
 						],
 					},
@@ -1803,12 +1895,11 @@ const SECTIONS = [
 						label: 'Step 6 — patch to a specific NodePort (optional)',
 						desc: 'The exam may ask for a specific port number.',
 						code: [
-							"kubectl patch svc node-app-svc -p '{\"spec\":{\"ports\":[{\"port\":80,\"targetPort\":80,\"nodePort\":30080}]}}'",
+							'kubectl patch svc node-app-svc -p \'{"spec":{"ports":[{"port":80,"targetPort":80,"nodePort":30080}]}}\'',
 						],
 					},
 				],
-				expected:
-					'curl returns the nginx welcome page via the node IP and NodePort.',
+				expected: 'curl returns the nginx welcome page via the node IP and NodePort.',
 				note: 'NodePort range: 30000–32767. The same port is open on ALL nodes in the cluster, even if the pod only runs on one of them.',
 			},
 			{
@@ -1934,8 +2025,7 @@ const SECTIONS = [
 						],
 					},
 				],
-				expected:
-					'/a returns nginx welcome page. /b returns Apache httpd page.',
+				expected: '/a returns nginx welcome page. /b returns Apache httpd page.',
 				note: 'Gateway API concepts: GatewayClass (cluster-scoped, like IngressClass), Gateway (the listener endpoint), HTTPRoute (the routing rules). A single Gateway can have many HTTPRoutes attached to it.',
 			},
 		],
@@ -2144,9 +2234,8 @@ const SECTIONS = [
 						code: ['kubectl get pods | grep broken-static'],
 					},
 				],
-				expected:
-					'After fixing both issues, the static pod reaches Running state.',
-				note: "kubelet logs (journalctl -u kubelet) are the primary tool for static pod failures — kubectl events are less useful here because the pod may not even appear to the API server until the YAML is valid.",
+				expected: 'After fixing both issues, the static pod reaches Running state.',
+				note: 'kubelet logs (journalctl -u kubelet) are the primary tool for static pod failures — kubectl events are less useful here because the pod may not even appear to the API server until the YAML is valid.',
 			},
 			{
 				id: 't41',
@@ -2188,9 +2277,56 @@ const SECTIONS = [
 						],
 					},
 				],
-				expected:
-					'Pod reaches Running state after fixing the image tag.',
+				expected: 'Pod reaches Running state after fixing the image tag.',
 				note: 'ImagePullBackOff causes: wrong tag, typo in image name, private registry without credentials, or registry is unreachable. Check describe → Events for the exact message.',
+			},
+			{
+				id: 't46',
+				tag: 'essential',
+				title: 'Inspect containers and pods using crictl on a node',
+				difficulty: 'easy',
+				scenario:
+					'SSH onto a worker node and use crictl to inspect the running containers without kubectl. List all containers, get logs for a specific container, and inspect its full spec. This skill is essential when the API server is down or kubectl is unavailable. Use the Killercoda "Kubernetes 2-nodes" playground.',
+				steps: [
+					{
+						label: 'Step 1 — SSH onto a worker node',
+						desc: 'crictl talks directly to the CRI socket, so it must be run on the node itself.',
+						code: ['ssh <worker-node-ip>'],
+					},
+					{
+						label: 'Step 2 — list running containers',
+						desc: '',
+						code: ['sudo crictl ps'],
+					},
+					{
+						label: 'Step 3 — list all containers including stopped/crashed',
+						desc: 'Shows containers that have exited — useful for diagnosing restart loops.',
+						code: ['sudo crictl ps -a'],
+					},
+					{
+						label: 'Step 4 — get logs for a container',
+						desc: 'Use the container ID from crictl ps.',
+						code: ['sudo crictl logs <container-id>'],
+					},
+					{
+						label: 'Step 5 — inspect a container',
+						desc: 'Outputs the full container config as JSON — includes mounts, env vars, and state.',
+						code: ['sudo crictl inspect <container-id>'],
+					},
+					{
+						label: 'Step 6 — list pod sandboxes',
+						desc: 'Shows CRI-level pods (sandboxes), not kubectl pods.',
+						code: ['sudo crictl pods'],
+					},
+					{
+						label: 'Step 7 — list cached images on the node',
+						desc: '',
+						code: ['sudo crictl images'],
+					},
+				],
+				expected:
+					'You can identify running containers, read their logs, and inspect their config without using kubectl.',
+				note: 'crictl is the low-level CRI debugging tool. It works when kubelet or the API server is down. The CRI socket is typically /run/containerd/containerd.sock for containerd. If crictl cannot connect, check: sudo crictl --runtime-endpoint unix:///run/containerd/containerd.sock ps',
 			},
 		],
 	},
