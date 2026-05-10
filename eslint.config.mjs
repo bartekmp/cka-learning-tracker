@@ -64,6 +64,16 @@ export default [
         },
         rules: { 'no-unused-vars': noUnusedVars },
     },
+    // Intro tour — standalone IIFE browser script, only used on index.html.
+    {
+        files: ['src/js/tour.js'],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'script',
+            globals: { ...globals.browser, ...globals.es2022 },
+        },
+        rules: { 'no-unused-vars': noUnusedVars },
+    },
     // Files that DEFINE shared globals (loaded as <script> tags; top-level vars become page-scoped).
     {
         files: ['src/data/**/*.js', 'src/js/autosave.js', 'src/js/theme.js'],
