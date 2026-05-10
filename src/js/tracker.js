@@ -353,7 +353,7 @@ function App() {
 	return (
 		<div
 			style={{
-				maxWidth: 820,
+				maxWidth: 860,
 				margin: '0 auto',
 				fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 			}}
@@ -407,6 +407,19 @@ function App() {
 					>
 						Check current version ↗
 					</a>
+				</div>
+				<div
+					id="autosave-bar"
+					className="autosave-bar state-none"
+					style={{ marginBottom: 14 }}
+				>
+					<span className="autosave-icon" id="as-icon">
+						💾
+					</span>
+					<span className="autosave-text" id="as-text">
+						Setting up…
+					</span>
+					<span className="as-flash" id="as-flash"></span>
 				</div>
 				<div
 					style={{

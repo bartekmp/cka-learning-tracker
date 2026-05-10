@@ -5,6 +5,7 @@
 
 	// ── Inject nav bar ──────────────────────────────────────────────────────────
 	var links = [
+		{ href: 'index.html', label: '🏠 Homepage' },
 		{ href: 'cka-tracker.html', label: '📋 Study' },
 		{ href: 'cka-practice-tasks.html', label: '🧪 Practice' },
 	];
