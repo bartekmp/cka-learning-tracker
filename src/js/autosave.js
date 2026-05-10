@@ -50,19 +50,44 @@ async function canWrite(h) {
 	return false;
 }
 
-async function writeHandle(h, data, marker) {
-	const w = await h.createWritable();
-	await w.write(
-		JSON.stringify({ _type: marker, saved: new Date().toISOString(), data }, null, 2)
-	);
-	await w.close();
-}
+const SHARED_MARKER = 'cka-progress-v1';
 
-async function readHandle(h, marker) {
+async function readSection(h, section) {
 	const text = await (await h.getFile()).text();
 	const p = JSON.parse(text);
-	if (p._type !== marker) throw new Error('wrong file');
-	return p.data || {};
+	if (p._type === SHARED_MARKER) return p[section] || {};
+	if (section === 'tracker' && p._type === 'cka-tracker-progress-v1') return p.data || {};
+	if (section === 'tasks' && p._type === 'cka-tasks-progress-v1') return p.data || {};
+	throw new Error('wrong file');
+}
+
+async function writeSection(h, section, data) {
+	let combined = { tracker: {}, tasks: {} };
+
+	try {
+		const text = await (await h.getFile()).text();
+		const p = JSON.parse(text);
+		if (p._type === SHARED_MARKER) {
+			combined = { tracker: p.tracker || {}, tasks: p.tasks || {} };
+		} else if (p._type === 'cka-tracker-progress-v1') {
+			combined.tracker = p.data || {};
+		} else if (p._type === 'cka-tasks-progress-v1') {
+			combined.tasks = p.data || {};
+		}
+	} catch {
+		/* fresh file, start empty */
+	}
+
+	combined[section] = data;
+	const w = await h.createWritable();
+	await w.write(
+		JSON.stringify(
+			{ _type: SHARED_MARKER, saved: new Date().toISOString(), ...combined },
+			null,
+			2
+		)
+	);
+	await w.close();
 }
 
 function asFlash(msg, color) {
@@ -121,9 +146,10 @@ function setBarState(state, filename, cbs) {
 		icon.textContent = '💾';
 		setBarText(text, [
 			{ tag: 'strong', text: 'Set up auto-save' },
-			' — pick a file once, then it saves automatically',
+			' — create a new file or load a previously saved one',
 		]);
-		bar.insertBefore(mkBtn('Set up auto-save', 'primary', cbs.pickFile), fin);
+		bar.insertBefore(mkBtn('New file', 'primary', cbs.pickFile), fin);
+		bar.insertBefore(mkBtn('Load existing', '', cbs.loadFile), fin);
 	} else {
 		// fallback (Firefox etc.)
 		icon.textContent = '⚠️';

@@ -6,15 +6,16 @@ const scriptGlobals = {
     CHEATSHEET: 'readonly',
     HAS_FSA: 'readonly',
     SECTIONS: 'readonly',
+    SHARED_MARKER: 'readonly',
     TIPS: 'readonly',
     asFlash: 'readonly',
     canWrite: 'readonly',
     idbDel: 'readonly',
     idbGet: 'readonly',
     idbSet: 'readonly',
-    readHandle: 'readonly',
+    readSection: 'readonly',
     setBarState: 'readonly',
-    writeHandle: 'readonly',
+    writeSection: 'readonly',
 };
 
 const noUnusedVars = [
