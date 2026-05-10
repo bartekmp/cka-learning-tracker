@@ -106,6 +106,19 @@ function App() {
 	);
 
 	useEffect(function () {
+		var sectionId = new URLSearchParams(location.search).get('section');
+		if (!sectionId) return;
+		setTab('plan');
+		setOpen(function (prev) {
+			return Object.assign({}, prev, { [sectionId]: true });
+		});
+		setTimeout(function () {
+			var el = document.getElementById('sec-' + sectionId);
+			if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}, 200);
+	}, []);
+
+	useEffect(function () {
 		window._asPickFile = async function () {
 			try {
 				const handle = await window.showSaveFilePicker({
@@ -619,6 +632,24 @@ function App() {
 										>
 											{stats.completed}/{stats.total}
 										</span>
+										<a
+											href={'cka-practice-tasks.html?section=' + section.id}
+											onClick={function (e) {
+												e.stopPropagation();
+											}}
+											style={{
+												fontSize: 11,
+												padding: '2px 9px',
+												borderRadius: 99,
+												fontWeight: 500,
+												background: 'rgba(124,58,237,.1)',
+												color: '#7c3aed',
+												textDecoration: 'none',
+												whiteSpace: 'nowrap',
+											}}
+										>
+											🧩 Practice that
+										</a>
 									</div>
 									<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 										<div
