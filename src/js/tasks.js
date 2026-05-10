@@ -263,6 +263,11 @@ function buildPanels() {
 			doneBadge.textContent = '✓ Done';
 			metaEl.appendChild(doneBadge);
 
+			const studyLink = document.createElement('a');
+			studyLink.className = 'study-that-link';
+			studyLink.href = 'cka-tracker.html?section=' + s.id;
+			studyLink.textContent = '📖 Study that';
+			metaEl.appendChild(studyLink);
 			hdrDiv.appendChild(numEl);
 			hdrDiv.appendChild(titleEl);
 			hdrDiv.appendChild(scenEl);
@@ -563,3 +568,11 @@ updateOverall();
 })();
 initStorage();
 initKeyboardShortcuts();
+
+// ── Deep-link from tracker (?section=sN) ──────────────────────────────────────
+(function () {
+	var sectionId = new URLSearchParams(location.search).get('section');
+	if (!sectionId) return;
+	var idx = SECTIONS.findIndex((s) => s.id === sectionId);
+	if (idx >= 0) switchTab(idx);
+})();
