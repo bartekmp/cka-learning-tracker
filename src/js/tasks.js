@@ -1,8 +1,7 @@
 // CKA Practice Tasks — page logic
 // Depends on: js/autosave.js and data/tasks-data.js (provides SECTIONS)
 
-const FILE_MARKER = 'cka-tasks-progress-v1';
-const HANDLE_KEY = 'tasks-handle';
+const HANDLE_KEY = 'cka-handle';
 const UI_KEY = 'cka-tasks-ui';
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -13,19 +12,37 @@ let totalTasks = 0,
 let focusMode = false;
 
 function taskCbs() {
-	return { pickFile, reEnable, manualExport, manualImport };
+	return { pickFile, loadFile, reEnable, manualExport, manualImport };
 }
 
 // ── Autosave functions ───────────────────────────────────────────────────────
+async function loadFile() {
+	try {
+		const [h] = await window.showOpenFilePicker({
+			types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+		});
+		const data = await readSection(h, 'tasks');
+		fileHandle = h;
+		await idbSet(HANDLE_KEY, h);
+		done = data;
+		refreshAllButtons();
+		updateOverall();
+		setBarState('active', h.name, taskCbs());
+		asFlash('✓ Progress loaded!');
+	} catch (e) {
+		if (e.name !== 'AbortError') asFlash('Could not load file', '#dc2626');
+	}
+}
+
 async function pickFile() {
 	try {
 		const h = await window.showSaveFilePicker({
-			suggestedName: 'cka-tasks-progress.json',
+			suggestedName: 'cka-progress.json',
 			types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
 		});
 		fileHandle = h;
 		await idbSet(HANDLE_KEY, h);
-		await writeHandle(h, done, FILE_MARKER);
+		await writeSection(h, 'tasks', done);
 		setBarState('active', h.name, taskCbs());
 		asFlash('✓ Auto-save enabled!');
 	} catch (e) {
@@ -50,18 +67,35 @@ async function autoSave() {
 			setBarState('perm', null, taskCbs());
 			return;
 		}
-		await writeHandle(fileHandle, done, FILE_MARKER);
+		await writeSection(fileHandle, 'tasks', done);
 		asFlash('✓ Saved');
 	} catch {
 		asFlash('Save failed', '#dc2626');
 	}
 }
 
-function manualExport() {
+async function manualExport() {
+	let trackerData = {};
+
+	if (fileHandle) {
+		try {
+			const text = await (await fileHandle.getFile()).text();
+			const p = JSON.parse(text);
+			if (p._type === SHARED_MARKER) trackerData = p.tracker || {};
+		} catch {
+			/* ignore */
+		}
+	}
+
 	const blob = new Blob(
 		[
 			JSON.stringify(
-				{ _type: FILE_MARKER, saved: new Date().toISOString(), data: done },
+				{
+					_type: SHARED_MARKER,
+					saved: new Date().toISOString(),
+					tracker: trackerData,
+					tasks: done,
+				},
 				null,
 				2
 			),
@@ -70,7 +104,7 @@ function manualExport() {
 	);
 	const a = document.createElement('a');
 	a.href = URL.createObjectURL(blob);
-	a.download = 'cka-tasks-progress.json';
+	a.download = 'cka-progress.json';
 	a.click();
 	URL.revokeObjectURL(a.href);
 	asFlash('✓ Exported!');
@@ -83,11 +117,18 @@ function manualImport(evt) {
 	reader.onload = (e) => {
 		try {
 			const p = JSON.parse(e.target.result);
-			if (p._type !== FILE_MARKER) {
+			let tasksData;
+
+			if (p._type === SHARED_MARKER) {
+				tasksData = p.tasks || {};
+			} else if (p._type === 'cka-tasks-progress-v1') {
+				tasksData = p.data || {};
+			} else {
 				asFlash('Wrong file', '#dc2626');
 				return;
 			}
-			done = p.data || {};
+
+			done = tasksData;
 			refreshAllButtons();
 			updateOverall();
 			asFlash('✓ Imported!');
@@ -125,7 +166,7 @@ async function initStorage() {
 		return;
 	}
 	try {
-		done = await readHandle(h, FILE_MARKER);
+		done = await readSection(h, 'tasks');
 		refreshAllButtons();
 		updateOverall();
 		setBarState('active', h.name, taskCbs());
