@@ -127,14 +127,6 @@
 						</div>
 					</div>
 					<div class="feature">
-						<span class="feature-icon">📴</span>
-						<div>
-							<strong>Bundled output</strong> — the build ships all required runtime
-							files, including the tracker’s React dependency, directly inside the
-							final static site.
-						</div>
-					</div>
-					<div class="feature">
 						<span class="feature-icon">📋</span>
 						<div>
 							<strong>Click-to-copy</strong> — every command in the cheatsheet and
@@ -153,6 +145,50 @@
 						<div>
 							<strong>ADHD-optimised</strong> — structured for active learning, not
 							passive video watching.
+						</div>
+					</div>
+					<div
+						class="feature feature-pomo"
+						id="feature-pomo"
+						role="button"
+						tabindex="0"
+						title="Open Pomodoro timer"
+					>
+						<div class="pomo-inline" aria-hidden="true">
+							<svg width="40" height="40" viewBox="0 0 28 28" aria-hidden="true">
+								<circle
+									id="fpomo-ring-bg"
+									cx="14"
+									cy="14"
+									r="11"
+									fill="none"
+									stroke="rgba(0,0,0,0.1)"
+									stroke-width="2.5"
+								/>
+								<circle
+									id="fpomo-ring-fg"
+									cx="14"
+									cy="14"
+									r="11"
+									fill="none"
+									stroke="#ef4444"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									style="
+										transform: rotate(-90deg);
+										transform-origin: 14px 14px;
+										transition:
+											stroke-dashoffset 0.8s linear,
+											stroke 0.3s;
+									"
+								/>
+							</svg>
+							<span id="fpomo-time" class="pomo-inline-time">25:00</span>
+						</div>
+						<div>
+							<strong>Pomodoro Timer</strong> — built-in 25-min focus sessions with
+							short &amp; long break prompts, session dots, and custom durations.
+							<span class="pomo-open-hint">Click to open →</span>
 						</div>
 					</div>
 				</div>
@@ -321,5 +357,76 @@
 		</footer>
 		<script src="js/theme.js"></script>
 		<script src="js/pomodoro.js"></script>
+		<script>
+			!(function () {
+				var CIRC = 2 * Math.PI * 11;
+				var COLORS = { work: '#ef4444', shortBreak: '#10b981', longBreak: '#3b82f6' };
+				var DEFAULTS = { work: 25, shortBreak: 5, longBreak: 15 };
+
+				function updatePreview() {
+					var state;
+					try {
+						var raw = localStorage.getItem('cka-pomodoro');
+						state = raw ? JSON.parse(raw) : null;
+					} catch (_) {
+						state = null;
+					}
+					var phase = (state && state.phase) || 'work';
+					var mins =
+						(state && state.customMins && state.customMins[phase]) || DEFAULTS[phase];
+					var secs;
+					if (state && state.running && state.endsAt) {
+						secs = Math.max(0, Math.round((state.endsAt - Date.now()) / 1000));
+					} else {
+						secs =
+							state && typeof state.remaining === 'number'
+								? state.remaining
+								: mins * 60;
+					}
+					var total = mins * 60;
+					var pct = total > 0 ? secs / total : 0;
+					var color = COLORS[phase] || COLORS.work;
+					var dark = document.documentElement.classList.contains('dark');
+
+					var bg = document.getElementById('fpomo-ring-bg');
+					var fg = document.getElementById('fpomo-ring-fg');
+					var timeEl = document.getElementById('fpomo-time');
+					if (!bg || !fg || !timeEl) return;
+
+					bg.setAttribute('stroke', dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
+					fg.setAttribute('stroke', color);
+					fg.setAttribute('stroke-dasharray', String(CIRC));
+					fg.setAttribute('stroke-dashoffset', String(CIRC * (1 - pct)));
+
+					var m = Math.floor(secs / 60);
+					var s = secs % 60;
+					timeEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+					timeEl.style.color = color;
+				}
+
+				function openPomodoro() {
+					var pill = document.getElementById('pomo-pill');
+					var panel = document.getElementById('pomo-panel');
+					if (pill && panel && panel.hidden) pill.click();
+				}
+
+				document.addEventListener('DOMContentLoaded', function () {
+					updatePreview();
+					setInterval(updatePreview, 1000);
+					window.addEventListener('themechange', updatePreview);
+
+					var card = document.getElementById('feature-pomo');
+					if (card) {
+						card.addEventListener('click', openPomodoro);
+						card.addEventListener('keydown', function (e) {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								openPomodoro();
+							}
+						});
+					}
+				});
+			})();
+		</script>
 	</body>
 </html>
