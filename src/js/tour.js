@@ -11,6 +11,12 @@
 
 	var steps = [
 		{
+			selector: '.hero',
+			welcome: true,
+			title: '👋 Welcome!',
+			text: "A self-contained study toolkit built for the CKA exam. Want a quick tour of what's here?",
+		},
+		{
 			selector: '.card.blue',
 			title: '📋 Study Tracker',
 			text: 'Keep track of your progress here! All 9 CKA exam domains with checkable topics, command cheatsheets, and per-section progress bars.',
@@ -38,7 +44,7 @@
 	];
 
 	var current = 0;
-	var overlay, spotlight, tooltip, stepCounter, prevBtn, nextBtn, skipBtn;
+	var overlay, spotlight, tooltip, stepCounter, prevBtn, nextBtn, skipBtn, skipBigBtn, startBtn;
 	var TIP_W = 280;
 	var TIP_MARGIN = 16;
 	var GAP = 16;
@@ -154,16 +160,28 @@
 		el.scrollIntoView({ behavior: 'instant', block: 'center' });
 
 		setTimeout(function () {
+			if (step.welcome) {
+				tooltip.classList.add('tour-tooltip--welcome');
+			} else {
+				tooltip.classList.remove('tour-tooltip--welcome');
+			}
 			positionSpotlight(el);
 			positionTooltip(el);
 			tooltip.querySelector('.tour-title').textContent = step.title;
 			tooltip.querySelector('.tour-text').textContent = step.text;
-			stepCounter.textContent = idx + 1 + ' / ' + steps.length;
-			prevBtn.disabled = idx === 0;
-			nextBtn.textContent = idx === steps.length - 1 ? 'Done ✓' : 'Next →';
+			if (step.welcome) {
+				stepCounter.textContent = '';
+				prevBtn.disabled = true;
+				nextBtn.textContent = 'Next →';
+				startBtn.focus();
+			} else {
+				stepCounter.textContent = idx + ' / ' + (steps.length - 1);
+				prevBtn.disabled = idx <= 1;
+				nextBtn.textContent = idx === steps.length - 1 ? 'Done ✓' : 'Next →';
+				nextBtn.focus();
+			}
 			spotlight.style.opacity = '1';
 			tooltip.style.opacity = '1';
-			nextBtn.focus();
 		}, 60);
 	}
 
@@ -191,7 +209,7 @@
 			} else {
 				finish();
 			}
-		} else if (e.key === 'ArrowLeft' && current > 0) {
+		} else if (e.key === 'ArrowLeft' && current > 1) {
 			current--;
 			showStep(current);
 		}
@@ -232,6 +250,10 @@
 			'</div>' +
 			'<div class="tour-title"></div>' +
 			'<p class="tour-text"></p>' +
+			'<div class="tour-welcome-footer">' +
+			'<button class="tour-btn-skip-big" type="button">Skip</button>' +
+			'<button class="tour-btn-start" type="button">Take a tour →</button>' +
+			'</div>' +
 			'<div class="tour-footer">' +
 			'<button class="tour-prev" type="button">← Back</button>' +
 			'<span class="tour-counter"></span>' +
@@ -243,9 +265,11 @@
 		prevBtn = tooltip.querySelector('.tour-prev');
 		nextBtn = tooltip.querySelector('.tour-next');
 		skipBtn = tooltip.querySelector('.tour-skip');
+		skipBigBtn = tooltip.querySelector('.tour-btn-skip-big');
+		startBtn = tooltip.querySelector('.tour-btn-start');
 
 		prevBtn.addEventListener('click', function () {
-			if (current > 0) {
+			if (current > 1) {
 				current--;
 				showStep(current);
 			}
@@ -259,6 +283,11 @@
 			}
 		});
 		skipBtn.addEventListener('click', finish);
+		skipBigBtn.addEventListener('click', finish);
+		startBtn.addEventListener('click', function () {
+			current = 1;
+			showStep(current);
+		});
 
 		document.addEventListener('keydown', onKey);
 		window.addEventListener('resize', onResize);
