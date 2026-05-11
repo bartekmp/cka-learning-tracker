@@ -605,3 +605,73 @@ html.dark .tour-arrow-left::before {
 html.dark .tour-arrow-right::before {
 	border-left-color: #252522;
 }
+
+/* ── Welcome step (centred tooltip, big choice buttons) ─────────────────── */
+.tour-tooltip--welcome {
+	width: 320px;
+	inset: 50% auto auto 50% !important;
+	transform: translate(-50%, -50%);
+}
+
+.tour-tooltip--welcome::before {
+	display: none;
+}
+
+.tour-tooltip--welcome .tour-skip {
+	display: none;
+}
+
+.tour-tooltip--welcome .tour-footer {
+	display: none;
+}
+
+.tour-welcome-footer {
+	display: none;
+	gap: 10px;
+	margin-top: 8px;
+}
+
+.tour-tooltip--welcome .tour-welcome-footer {
+	display: flex;
+}
+
+.tour-btn-skip-big,
+.tour-btn-start {
+	flex: 1;
+	font-size: 15px;
+	font-weight: 600;
+	padding: 11px 14px;
+	border-radius: 10px;
+	cursor: pointer;
+	transition: background 0.12s;
+}
+
+.tour-btn-skip-big {
+	background: #f0ede8;
+	color: #555;
+	border: 0.5px solid rgba(0, 0, 0, 0.12);
+}
+
+.tour-btn-skip-big:hover {
+	background: #e0ddd8;
+}
+
+html.dark .tour-btn-skip-big {
+	background: #333;
+	color: #bbb;
+	border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .tour-btn-skip-big:hover {
+	background: #3a3a37;
+}
+
+.tour-btn-start {
+	background: #2563eb;
+	border: none;
+	color: #fff;
+}
+
+.tour-btn-start:hover {
+	background: #1d4ed8;
+}
