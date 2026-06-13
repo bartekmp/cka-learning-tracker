@@ -5,3 +5,5 @@ npm-debug.log*
 # Local editor and OS files
 .DS_Store
 Thumbs.db
+
+deploy.sh
