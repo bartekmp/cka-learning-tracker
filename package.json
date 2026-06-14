@@ -1,6 +1,6 @@
 {
 	"name": "cka-learning-tracker",
-	"version": "0.7.4",
+	"version": "0.7.5",
 	"private": true,
 	"description": "Static CKA study tracker and practice task site.",
 	"scripts": {
