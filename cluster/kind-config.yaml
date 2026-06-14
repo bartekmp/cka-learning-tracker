@@ -1,0 +1,50 @@
+# kind cluster config for CKA practice.
+#
+# Topology matches the exam: 1 control-plane node + 1 worker node, so that
+# drain / cordon / uncordon and node-targeted scheduling tasks have a real
+# second node to act on.
+#
+# Each kind node is a container that boots with kubeadm, so the kubeadm
+# internals the exercises rely on are all present:
+#   - etcd runs as a static pod (/etc/kubernetes/manifests/etcd.yaml)
+#   - kubelet runs under systemd inside the node container
+#   - containerd + crictl are available on the node
+#
+# The default CNI (kindnet) is disabled so we can install Calico, which
+# actually ENFORCES NetworkPolicy (kindnet does not).
+#
+# podSubnet is the pod network. It is deliberately 10.244.0.0/16 (not Calico's
+# 192.168.0.0/16 default) because 192.168.x.x overlaps typical home LANs, which
+# would stop pods from reaching real LAN devices in that range. setup.sh pins
+# both this value and Calico's IP pool to POD_CIDR so they always match.
+#
+# The node image tag, podSubnet, and ingress hostPorts below are rewritten by
+# setup.sh from KIND_NODE_IMAGE / POD_CIDR / INGRESS_HTTP_PORT / INGRESS_HTTPS_PORT,
+# so prefer setting those env vars rather than editing here. Override the ports
+# if something already owns 80/443 on the host (a web server, k3s Traefik, etc.).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+    disableDefaultCNI: true
+    podSubnet: '10.244.0.0/16'
+nodes:
+    - role: control-plane
+      image: kindest/node:v1.35.0
+      # Label the control-plane so the kind ingress-nginx manifest schedules here.
+      # The node listens on 80/443 internally; those are published on the host as
+      # 43991/43992 (high/unprivileged, won't clash with a web server or k3s).
+      kubeadmConfigPatches:
+          - |
+              kind: InitConfiguration
+              nodeRegistration:
+                kubeletExtraArgs:
+                  node-labels: 'ingress-ready=true'
+      extraPortMappings:
+          - containerPort: 80
+            hostPort: 43991
+            protocol: TCP
+          - containerPort: 443
+            hostPort: 43992
+            protocol: TCP
+    - role: worker
+      image: kindest/node:v1.35.0

@@ -40,6 +40,42 @@ python -m http.server 8000 --directory dist
 
 Then open `http://localhost:8000/`.
 
+## Practice Cluster
+
+The practice tasks assume a real two-node Kubernetes cluster (one control-plane,
+one worker). The [`cluster/`](cluster/README.md) directory provides a one-command,
+cross-platform (Linux / macOS / Windows) setup built on [kind](https://kind.sigs.k8s.io/)
+that installs any missing dependencies, creates the cluster with the addons the
+tasks need (Calico for NetworkPolicy, metrics-server, ingress-nginx), and resets
+to a clean state in seconds:
+
+```bash
+npm run cluster:up       # create the cluster + addons
+npm run cluster:status   # show nodes and pods
+npm run cluster:reset    # wipe and rebuild a clean cluster
+npm run cluster:down     # delete the cluster
+```
+
+Docker must be installed and running first. See [`cluster/README.md`](cluster/README.md)
+for details, configuration, and the two tasks better practised on Killercoda.
+
+Website-only users (no clone) can get the same toolkit from the
+[landing page](https://bartekmp.github.io/cka-learning-tracker/#practice-cluster) —
+either a per-platform zip download, or a one-liner:
+
+```bash
+# Linux / macOS
+curl -fsSL https://bartekmp.github.io/cka-learning-tracker/cluster/get.sh | bash
+```
+
+```powershell
+# Windows
+irm https://bartekmp.github.io/cka-learning-tracker/cluster/get.ps1 | iex
+```
+
+The build publishes the scripts and zips into `dist/cluster/`, so they ship with
+the static site automatically.
+
 ## Quality Checks
 
 This repository uses a small Node.js toolchain for formatting, linting, and bundling.

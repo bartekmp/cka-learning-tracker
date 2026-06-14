@@ -11,10 +11,15 @@
 		"lint:js": "eslint build.mjs src/data/**/*.js src/js/**/*.js",
 		"lint:css": "stylelint \"src/css/**/*.css\"",
 		"lint:html": "htmlhint \"src/*.html\"",
-		"lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\""
+		"lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
+		"cluster:up": "node cluster/cluster.mjs up",
+		"cluster:down": "node cluster/cluster.mjs down",
+		"cluster:reset": "node cluster/cluster.mjs reset",
+		"cluster:status": "node cluster/cluster.mjs status"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"adm-zip": "^0.5.17",
 		"esbuild": "^0.28.1",
 		"eslint": "^10.5.0",
 		"globals": "^17.6.0",

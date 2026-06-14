@@ -95,6 +95,83 @@
 				<div class="progress-label" id="overall-label">0 / 0 tasks completed</div>
 			</div>
 
+			<details class="cluster cluster-details" id="practice-cluster">
+				<summary>
+					<span>☸️ Run the tasks on a real cluster</span>
+					<span class="cluster-summary-hint">optional · click to expand</span>
+				</summary>
+				<div class="cluster-card">
+					<div class="card-icon">☸️</div>
+					<div class="card-title">Local 2-node practice cluster</div>
+					<div class="card-desc">
+						The practice tasks assume a real cluster (one control-plane, one worker).
+						This one-command toolkit spins up a kubeadm-based
+						<a href="https://kind.sigs.k8s.io/" target="_blank" rel="noreferrer"
+							>kind</a
+						>
+						cluster on your machine — with Calico (NetworkPolicy), metrics-server, and
+						ingress preinstalled — and resets to a clean state in seconds. Works on
+						Linux, macOS, and Windows. No repo clone needed.
+					</div>
+
+					<div class="cluster-dl">
+						<a class="dl-btn" href="cluster/cka-practice-cluster-unix.zip" download>
+							⬇️ Download for Linux / macOS
+						</a>
+						<a class="dl-btn" href="cluster/cka-practice-cluster-windows.zip" download>
+							⬇️ Download for Windows
+						</a>
+					</div>
+
+					<div class="cluster-or">…or grab it straight from your terminal:</div>
+					<div class="cmd-list">
+						<div class="cmd" title="Click to copy">
+							<span class="cmd-os">Linux / macOS</span>
+							<code id="cmd-unix"
+								>curl -fsSL
+								https://bartekmp.github.io/cka-learning-tracker/cluster/get.sh |
+								bash</code
+							>
+							<span class="cmd-copy">Copy</span>
+						</div>
+						<div class="cmd" title="Click to copy">
+							<span class="cmd-os">Windows</span>
+							<code id="cmd-win"
+								>irm https://bartekmp.github.io/cka-learning-tracker/cluster/get.ps1
+								| iex</code
+							>
+							<span class="cmd-copy">Copy</span>
+						</div>
+					</div>
+
+					<p class="cluster-note">
+						Requires <strong>Docker</strong> running. <code>kind</code> and
+						<code>kubectl</code> are installed automatically if missing. Then run
+						<code>./setup.sh</code> (or <code>./setup.ps1</code>) and reset any time
+						with <code>./reset.sh</code>. Full details in the
+						<a
+							href="https://github.com/bartekmp/cka-learning-tracker/blob/main/cluster/README.md"
+							target="_blank"
+							rel="noreferrer"
+							>cluster README ↗</a
+						>.
+					</p>
+					<p class="cluster-note">
+						<strong>This is optional.</strong> If you can't run a cluster locally (no
+						Docker, low-spec machine, locked-down work laptop), you don't need it — do
+						the tasks in the free, browser-based
+						<a
+							href="https://killercoda.com/killer-shell-cka"
+							target="_blank"
+							rel="noreferrer"
+							>Killer Coda CKA labs ↗</a
+						>
+						instead. The two kubeadm tasks (cluster upgrade, bootstrap-from-scratch) are
+						better done there anyway.
+					</p>
+				</div>
+			</details>
+
 			<div class="tabs" id="tabs"></div>
 			<div id="panels"></div>
 		</div>
@@ -136,5 +213,6 @@
 		<script src="js/theme.js"></script>
 		<script src="js/pomodoro.js"></script>
 		<script src="js/nav.js"></script>
+		<script src="js/cluster-cta.js"></script>
 	</body>
 </html>

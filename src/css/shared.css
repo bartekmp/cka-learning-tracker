@@ -591,3 +591,231 @@ html.dark #kbd-help-close {
 html.dark #kbd-help-close:hover {
 	background: rgba(255, 255, 255, 0.05);
 }
+
+/* Practice cluster (shared by the landing page and the practice tasks page) */
+.cluster {
+	margin-bottom: 48px;
+}
+
+.cluster h2 {
+	font-size: 11px;
+	font-weight: 500;
+	margin-bottom: 14px;
+	color: #888;
+	text-transform: uppercase;
+	letter-spacing: 0.6px;
+}
+
+.cluster-card {
+	background: #fff;
+	border: 0.5px solid rgba(0, 0, 0, 0.1);
+	border-radius: 14px;
+	padding: 24px;
+	border-top: 3px solid #34d399;
+}
+
+html.dark .cluster-card {
+	background: #252522;
+	border-color: rgba(255, 255, 255, 0.1);
+	border-top-color: #34d399;
+}
+
+.cluster-card .card-icon {
+	margin-bottom: 8px;
+	font-size: 28px;
+	line-height: 1;
+}
+
+.cluster-card .card-title {
+	font-size: 17px;
+	font-weight: 500;
+}
+
+.cluster-card .card-desc {
+	font-size: 13px;
+	color: #666;
+	line-height: 1.6;
+	margin-top: 8px;
+	margin-bottom: 16px;
+}
+
+html.dark .cluster-card .card-desc {
+	color: #999;
+}
+
+.cluster-dl {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 18px;
+}
+
+.dl-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 13px;
+	font-weight: 500;
+	padding: 8px 14px;
+	border-radius: 9px;
+	text-decoration: none;
+	background: #2563eb;
+	color: #fff;
+	border: 0.5px solid transparent;
+	transition:
+		background 0.12s,
+		transform 0.1s;
+}
+
+.dl-btn:hover {
+	background: #1d4ed8;
+	transform: translateY(-1px);
+}
+
+html.dark .dl-btn {
+	color: #fff;
+}
+
+.cluster-or {
+	font-size: 12px;
+	color: #888;
+	margin-bottom: 10px;
+}
+
+.cmd-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.cmd {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: rgba(0, 0, 0, 0.04);
+	border: 0.5px solid rgba(0, 0, 0, 0.08);
+	border-radius: 9px;
+	padding: 9px 12px;
+	cursor: pointer;
+	transition:
+		border-color 0.12s,
+		background 0.12s;
+}
+
+html.dark .cmd {
+	background: rgba(255, 255, 255, 0.05);
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+.cmd:hover {
+	border-color: rgba(37, 99, 235, 0.4);
+}
+
+.cmd-os {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #888;
+	flex-shrink: 0;
+	width: 64px;
+}
+
+.cmd code {
+	flex: 1;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 12.5px;
+	color: #1a1a18;
+	overflow-x: auto;
+	white-space: nowrap;
+}
+
+html.dark .cmd code {
+	color: #e8e6df;
+}
+
+.cmd-copy {
+	font-size: 11px;
+	color: #2563eb;
+	flex-shrink: 0;
+}
+
+html.dark .cmd-copy {
+	color: #60a5fa;
+}
+
+.cluster-note {
+	font-size: 12px;
+	color: #888;
+	line-height: 1.6;
+	margin: 0;
+}
+
+.cluster-note + .cluster-note {
+	margin-top: 10px;
+}
+
+/* Collapsible variant (practice tasks page) */
+.cluster-details {
+	border: 0.5px solid rgba(0, 0, 0, 0.1);
+	border-radius: 14px;
+	background: #fff;
+	overflow: hidden;
+}
+
+html.dark .cluster-details {
+	background: #252522;
+	border-color: rgba(255, 255, 255, 0.1);
+}
+
+.cluster-details > summary {
+	list-style: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 18px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #1a1a18;
+	user-select: none;
+}
+
+html.dark .cluster-details > summary {
+	color: #e8e6df;
+}
+
+.cluster-details > summary::-webkit-details-marker {
+	display: none;
+}
+
+.cluster-details > summary::before {
+	content: '▸';
+	color: #888;
+	font-size: 12px;
+	transition: transform 0.15s;
+}
+
+.cluster-details[open] > summary::before {
+	transform: rotate(90deg);
+}
+
+.cluster-summary-hint {
+	margin-left: auto;
+	font-size: 11px;
+	font-weight: 400;
+	color: #888;
+}
+
+/* Inside the disclosure the card sits flush, so drop its own frame */
+.cluster-details .cluster-card {
+	border: none;
+	border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+	border-radius: 0;
+	padding-top: 18px;
+}
+
+html.dark .cluster-details .cluster-card {
+	border-top-color: rgba(255, 255, 255, 0.08);
+}

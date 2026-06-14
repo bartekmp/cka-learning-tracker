@@ -75,6 +75,16 @@ export default [
         },
         rules: { 'no-unused-vars': noUnusedVars },
     },
+    // Practice-cluster CTA — standalone IIFE browser script, used on both pages.
+    {
+        files: ['src/js/cluster-cta.js'],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'script',
+            globals: { ...globals.browser, ...globals.es2022 },
+        },
+        rules: { 'no-unused-vars': noUnusedVars },
+    },
     // Files that DEFINE shared globals (loaded as <script> tags; top-level vars become page-scoped).
     {
         files: ['src/data/**/*.js', 'src/js/autosave.js', 'src/js/theme.js'],

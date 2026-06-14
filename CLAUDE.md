@@ -53,6 +53,13 @@ src/                   source files (edit these)
     theme.js           dark/light mode toggle, shared across all pages
     autosave.js        localStorage-based autosave helper, shared across all pages
     pomodoro.js        floating Pomodoro timer widget, shared across all pages
+cluster/               local practice-cluster toolkit (kind-based, see cluster/README.md)
+  setup.sh / setup.ps1     create the 2-node cluster + addons (Bash / PowerShell)
+  reset.sh / reset.ps1     wipe and rebuild a clean cluster
+  teardown.sh / teardown.ps1   delete the cluster
+  lib.sh / lib.ps1         shared helpers (deps install, addons)
+  cluster.mjs              node dispatcher behind the npm cluster:* scripts
+  kind-config.yaml         1 control-plane + 1 worker, Calico CNI, ingress ports
 dist/                  build output — do NOT edit directly
 build.mjs              esbuild-based build script
 ```
@@ -76,6 +83,7 @@ Output goes to `dist/`. The build:
 1. Copies all `src/` assets verbatim to `dist/`.
 2. Bundles `src/js/tracker.js` (JSX) with esbuild into `dist/js/tracker.js`.
 3. Injects a cache-busting query string (`?v=<version>`) on `<script>` and `<link>` tags in the HTML files.
+4. Publishes the practice-cluster toolkit to `dist/cluster/` — the individual scripts (for direct download), a per-platform zip (`cka-practice-cluster-{unix,windows}.zip`, built with `adm-zip`, executable bit preserved on `.sh` files), and **generated self-contained bootstraps** `get.sh` / `get.ps1`. The bootstraps embed every toolkit file via quoted heredocs / single-quoted here-strings (build fails if a file contains the delimiter), so a piped `curl … | bash` / `irm … | iex` needs no further downloads and never has to know its own URL. `get.sh` / `get.ps1` are build artifacts only — there are no source copies in `cluster/`.
 
 ### Serve locally
 
