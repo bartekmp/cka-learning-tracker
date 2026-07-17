@@ -24,7 +24,7 @@
 		"eslint": "^10.6.0",
 		"globals": "^17.6.0",
 		"htmlhint": "^1.6.3",
-		"markdownlint-cli2": "^0.22.1",
+		"markdownlint-cli2": "^0.23.1",
 		"prettier": "^3.9.5",
 		"react": "^19.2.5",
 		"react-dom": "^19.2.7",
