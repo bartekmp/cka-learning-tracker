@@ -28,7 +28,7 @@
 		"prettier": "^3.9.6",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8",
-		"stylelint": "^17.14.0",
+		"stylelint": "^17.14.1",
 		"stylelint-config-standard": "^40.0.0"
 	}
 }
