@@ -6,6 +6,9 @@ const UI_KEY = 'cka-tasks-ui';
 
 // ── State ────────────────────────────────────────────────────────────────────
 let fileHandle = null;
+// True once the save file's contents have been read into `done`. Until then we
+// must never write, or we would overwrite the file with empty progress.
+let fileLoaded = false;
 let done = {};
 let totalTasks = 0,
 	completedTasks = 0;
@@ -16,18 +19,25 @@ function taskCbs() {
 }
 
 // ── Autosave functions ───────────────────────────────────────────────────────
+// Read the file into `done` and switch the bar to active.
+async function activateHandle(h) {
+	const data = await readSection(h, 'tasks');
+	fileHandle = h;
+	fileLoaded = true;
+	done = data;
+	mirrorWrite('tasks', done, false);
+	refreshAllButtons();
+	updateOverall();
+	setBarState('active', h.name, taskCbs());
+}
+
 async function loadFile() {
 	try {
 		const [h] = await window.showOpenFilePicker({
 			types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
 		});
-		const data = await readSection(h, 'tasks');
-		fileHandle = h;
+		await activateHandle(h);
 		await idbSet(HANDLE_KEY, h);
-		done = data;
-		refreshAllButtons();
-		updateOverall();
-		setBarState('active', h.name, taskCbs());
 		asFlash('✓ Progress loaded!');
 	} catch (e) {
 		if (e.name !== 'AbortError') asFlash('Could not load file', '#dc2626');
@@ -41,8 +51,10 @@ async function pickFile() {
 			types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
 		});
 		fileHandle = h;
+		fileLoaded = true;
 		await idbSet(HANDLE_KEY, h);
 		await writeSection(h, 'tasks', done);
+		mirrorWrite('tasks', done, false);
 		setBarState('active', h.name, taskCbs());
 		asFlash('✓ Auto-save enabled!');
 	} catch (e) {
@@ -52,22 +64,40 @@ async function pickFile() {
 
 async function reEnable() {
 	if (!fileHandle) return;
-	if (await canWrite(fileHandle)) {
-		setBarState('active', fileHandle.name, taskCbs());
-		asFlash('✓ Auto-save re-enabled!');
-	} else {
+	// Called from a click, so requesting permission is allowed here.
+	if (!(await canWrite(fileHandle))) {
 		asFlash('Permission denied', '#dc2626');
+		return;
+	}
+	try {
+		const local = mirrorRead('tasks');
+		if (fileLoaded || (local && local.pending)) {
+			// Local progress is ahead of the file — flush it rather than
+			// re-reading and losing the changes made without write access.
+			fileLoaded = true;
+			await writeSection(fileHandle, 'tasks', done);
+			mirrorWrite('tasks', done, false);
+			setBarState('active', fileHandle.name, taskCbs());
+		} else {
+			await activateHandle(fileHandle);
+		}
+		asFlash('✓ Auto-save re-enabled!');
+	} catch {
+		asFlash('Could not read save file', '#dc2626');
 	}
 }
 
 async function autoSave() {
-	if (!fileHandle) return;
+	// Always mirror first — instant, needs no permission, cannot fail.
+	mirrorWrite('tasks', done, true);
+	if (!fileHandle || !fileLoaded) return;
 	try {
-		if (!(await canWrite(fileHandle))) {
+		if (!(await hasWrite(fileHandle))) {
 			setBarState('perm', null, taskCbs());
 			return;
 		}
 		await writeSection(fileHandle, 'tasks', done);
+		mirrorWrite('tasks', done, false);
 		asFlash('✓ Saved');
 	} catch {
 		asFlash('Save failed', '#dc2626');
@@ -129,6 +159,7 @@ function manualImport(evt) {
 			}
 
 			done = tasksData;
+			mirrorWrite('tasks', done, true);
 			refreshAllButtons();
 			updateOverall();
 			asFlash('✓ Imported!');
@@ -151,27 +182,52 @@ function refreshAllButtons() {
 }
 
 async function initStorage() {
+	// Restore progress from the browser mirror first — no permission needed, so
+	// the page is never blank while we sort the save file out.
+	const local = mirrorRead('tasks');
+	if (local) {
+		done = local.data;
+		refreshAllButtons();
+		updateOverall();
+	}
+
 	if (!HAS_FSA) {
 		setBarState('fallback', null, taskCbs());
 		return;
 	}
-	const h = await idbGet(HANDLE_KEY);
+	let h;
+	try {
+		h = await idbGet(HANDLE_KEY);
+	} catch {
+		h = null;
+	}
 	if (!h) {
 		setBarState('none', null, taskCbs());
 		return;
 	}
 	fileHandle = h;
-	if (!(await canWrite(h))) {
+	// Page load has no user activation, so we may only *query* the permission.
+	// Chrome resets it to "prompt" between sessions; the Re-enable button asks.
+	if (!(await hasWrite(h))) {
 		setBarState('perm', null, taskCbs());
 		return;
 	}
 	try {
-		done = await readSection(h, 'tasks');
-		refreshAllButtons();
-		updateOverall();
-		setBarState('active', h.name, taskCbs());
+		if (local && local.pending) {
+			// Local changes never reached the file — keep them and flush.
+			fileLoaded = true;
+			await writeSection(h, 'tasks', done);
+			mirrorWrite('tasks', done, false);
+			setBarState('active', h.name, taskCbs());
+		} else {
+			await activateHandle(h);
+		}
 		asFlash('✓ Progress loaded');
-	} catch {
+	} catch (e) {
+		if (isPermError(e)) {
+			setBarState('perm', null, taskCbs());
+			return;
+		}
 		await idbDel(HANDLE_KEY);
 		fileHandle = null;
 		setBarState('none', null, taskCbs());
@@ -265,6 +321,7 @@ function buildPanels() {
 			const card = document.createElement('div');
 			card.className = 'task-card' + (done[task.id] ? ' done' : '');
 			card.style.borderLeftColor = s.color;
+			card.dataset.search = taskHaystack(task);
 
 			const diffClass =
 				task.difficulty === 'hard'
@@ -377,6 +434,10 @@ function buildPanels() {
 				sol.appendChild(note);
 			}
 
+			// Lives outside .solution so a task can be completed without ever
+			// revealing the steps — solving it yourself shouldn't cost a spoiler.
+			const actions = document.createElement('div');
+			actions.className = 'task-actions';
 			const doneBtn = document.createElement('button');
 			doneBtn.className = 'done-btn' + (done[task.id] ? ' marked' : '');
 			doneBtn.textContent = done[task.id] ? '✓ Completed' : 'Mark as completed';
@@ -389,7 +450,9 @@ function buildPanels() {
 				card.classList.toggle('done', done[task.id]);
 				updateOverall();
 			};
-			sol.appendChild(doneBtn);
+			actions.appendChild(doneBtn);
+			// Above the solution toggle: complete first, peek only if stuck.
+			card.insertBefore(actions, toggle);
 
 			card.appendChild(sol);
 
@@ -494,6 +557,12 @@ function buildControls() {
 	focusBtn.textContent = '⊞ Focus mode';
 	focusBtn.onclick = toggleFocusMode;
 
+	const examBtn = document.createElement('button');
+	examBtn.className = 'ctrl-btn';
+	examBtn.title = `${EXAM_MINUTES}-minute timed run, solutions hidden (E)`;
+	examBtn.textContent = '🎯 Exam mode';
+	examBtn.onclick = confirmStartExam;
+
 	const kbdBtn = document.createElement('button');
 	kbdBtn.className = 'ctrl-btn';
 	kbdBtn.title = 'Keyboard shortcuts (?)';
@@ -503,11 +572,450 @@ function buildControls() {
 		else buildKbdHelp();
 	};
 
+	const searchWrap = document.createElement('div');
+	searchWrap.id = 'search-wrap';
+	const search = document.createElement('input');
+	search.id = 'task-search';
+	search.type = 'search';
+	search.placeholder = 'Search tasks and commands…  (/)';
+	search.autocomplete = 'off';
+	search.oninput = () => applySearch(search.value);
+	search.onkeydown = (e) => {
+		if (e.key === 'Escape') clearSearch();
+	};
+	const searchCount = document.createElement('span');
+	searchCount.id = 'search-count';
+	searchWrap.appendChild(search);
+	searchWrap.appendChild(searchCount);
+
 	bar.appendChild(continueBtn);
 	bar.appendChild(randBtn);
 	bar.appendChild(focusBtn);
+	bar.appendChild(examBtn);
 	bar.appendChild(kbdBtn);
+	bar.appendChild(searchWrap);
 	tabsEl.parentNode.insertBefore(bar, tabsEl);
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+// Nothing else on the page finds a command by name; scrolling 100+ tasks to
+// remember "how do I drain a node" is exactly the wrong kind of friction.
+
+function taskHaystack(task) {
+	const parts = [task.title, task.scenario, task.expected || '', task.note || ''];
+	task.steps.forEach((step) => {
+		parts.push(step.label, step.desc || '');
+		step.code.forEach((c) => parts.push(c));
+	});
+	return parts.join(' ').toLowerCase();
+}
+
+function applySearch(query) {
+	const wrap = document.querySelector('.wrap');
+	const countEl = document.getElementById('search-count');
+	const q = query.trim().toLowerCase();
+
+	if (!q) {
+		wrap?.classList.remove('searching');
+		document
+			.querySelectorAll('.search-hit, .no-hits')
+			.forEach((el) => el.classList.remove('search-hit', 'no-hits'));
+		if (countEl) countEl.textContent = '';
+		return;
+	}
+
+	wrap?.classList.add('searching');
+	let hits = 0;
+	document.querySelectorAll('.section').forEach((section) => {
+		let sectionHits = 0;
+		section.querySelectorAll('.task-card').forEach((card) => {
+			const match = (card.dataset.search || '').includes(q);
+			card.classList.toggle('search-hit', match);
+			if (match) sectionHits++;
+		});
+		section.classList.toggle('no-hits', sectionHits === 0);
+		hits += sectionHits;
+	});
+	if (countEl) countEl.textContent = hits === 1 ? '1 match' : `${hits} matches`;
+}
+
+function focusSearch() {
+	const input = document.getElementById('task-search');
+	if (!input) return;
+	input.focus();
+	input.select();
+}
+
+function clearSearch() {
+	const input = document.getElementById('task-search');
+	if (!input || !input.value) return false;
+	input.value = '';
+	applySearch('');
+	input.blur();
+	return true;
+}
+
+// ── Exam simulation mode ──────────────────────────────────────────────────────
+// The real CKA is 2 hours of hands-on tasks with no hints. The Pomodoro paces
+// studying; this paces the exam. Marks are kept separate from study progress
+// until the user explicitly saves them.
+
+const EXAM_KEY = 'cka-exam';
+const EXAM_MINUTES = 120;
+const EXAM_COUNT = 17;
+
+let exam = null;
+let examTicker = null;
+
+function examSave() {
+	try {
+		if (exam) localStorage.setItem(EXAM_KEY, JSON.stringify(exam));
+		else localStorage.removeItem(EXAM_KEY);
+	} catch (_) {
+		/* storage unavailable */
+	}
+}
+
+function examLoad() {
+	try {
+		const raw = JSON.parse(localStorage.getItem(EXAM_KEY));
+		if (!raw || !Array.isArray(raw.ids) || typeof raw.endsAt !== 'number') return null;
+		return { endsAt: raw.endsAt, ids: raw.ids, marks: raw.marks || {} };
+	} catch (_) {
+		return null;
+	}
+}
+
+// Flat lookup of every task with its section, for exam rendering.
+function allTasks() {
+	const out = [];
+	SECTIONS.forEach((s, si) => s.tasks.forEach((t) => out.push({ task: t, section: s, si })));
+	return out;
+}
+
+function findTask(id) {
+	return allTasks().find((e) => e.task.id === id) || null;
+}
+
+function fmtClock(ms) {
+	const total = Math.max(0, Math.round(ms / 1000));
+	const h = Math.floor(total / 3600);
+	const m = Math.floor((total % 3600) / 60);
+	const s = total % 60;
+	const pad = (n) => String(n).padStart(2, '0');
+	return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+function examMarkedCount() {
+	return exam ? exam.ids.filter((id) => exam.marks[id]).length : 0;
+}
+
+function updateExamBar() {
+	if (!exam) return;
+	const timeEl = document.getElementById('exam-time');
+	const countEl = document.getElementById('exam-count');
+	const left = exam.endsAt - Date.now();
+	if (timeEl) {
+		timeEl.textContent = fmtClock(left);
+		timeEl.classList.toggle('urgent', left <= 10 * 60 * 1000);
+	}
+	if (countEl) countEl.textContent = `${examMarkedCount()} of ${exam.ids.length} marked`;
+	if (left <= 0) finishExam(true);
+}
+
+function buildExamCard(entry, idx) {
+	const { task, section } = entry;
+	const card = document.createElement('div');
+	card.className = 'task-card exam-card' + (exam.marks[task.id] ? ' done' : '');
+	card.style.borderLeftColor = section.color;
+
+	const hdr = document.createElement('div');
+	hdr.className = 'task-header';
+
+	const num = document.createElement('div');
+	num.className = 'task-number';
+	num.textContent = `Question ${idx + 1} of ${exam.ids.length} · ${section.title}`;
+
+	const title = document.createElement('div');
+	title.className = 'task-title';
+	title.textContent = task.title;
+
+	const scen = document.createElement('div');
+	scen.className = 'task-scenario';
+	scen.textContent = task.scenario;
+
+	const meta = document.createElement('div');
+	meta.className = 'task-meta';
+	const pill = document.createElement('span');
+	pill.className =
+		'pill ' +
+		(task.difficulty === 'hard' ? 'hard' : task.difficulty === 'medium' ? 'medium' : 'easy');
+	pill.textContent = task.difficulty;
+	meta.appendChild(pill);
+
+	hdr.appendChild(num);
+	hdr.appendChild(title);
+	hdr.appendChild(scen);
+	hdr.appendChild(meta);
+	card.appendChild(hdr);
+
+	const actions = document.createElement('div');
+	actions.className = 'task-actions';
+	const btn = document.createElement('button');
+	btn.className = 'done-btn' + (exam.marks[task.id] ? ' marked' : '');
+	btn.textContent = exam.marks[task.id] ? '✓ Done' : 'Mark as done';
+	btn.onclick = () => {
+		exam.marks[task.id] = !exam.marks[task.id];
+		btn.className = 'done-btn' + (exam.marks[task.id] ? ' marked' : '');
+		btn.textContent = exam.marks[task.id] ? '✓ Done' : 'Mark as done';
+		card.classList.toggle('done', !!exam.marks[task.id]);
+		examSave();
+		updateExamBar();
+	};
+	actions.appendChild(btn);
+	card.appendChild(actions);
+
+	return card;
+}
+
+function renderExam() {
+	const view = document.getElementById('exam-view');
+	const list = document.getElementById('exam-list');
+	if (!view || !list) return;
+	list.textContent = '';
+	exam.ids.forEach((id, i) => {
+		const entry = findTask(id);
+		if (entry) list.appendChild(buildExamCard(entry, i));
+	});
+	document.body.classList.add('exam-active');
+	view.style.display = 'block';
+	updateExamBar();
+	clearInterval(examTicker);
+	examTicker = setInterval(updateExamBar, 1000);
+}
+
+function buildExamShell() {
+	if (document.getElementById('exam-view')) return;
+	const view = document.createElement('div');
+	view.id = 'exam-view';
+	view.style.display = 'none';
+
+	const bar = document.createElement('div');
+	bar.id = 'exam-bar';
+
+	const time = document.createElement('span');
+	time.id = 'exam-time';
+	time.textContent = '--:--';
+
+	const count = document.createElement('span');
+	count.id = 'exam-count';
+
+	const hint = document.createElement('span');
+	hint.id = 'exam-hint';
+	hint.textContent = 'Solutions are hidden until you finish.';
+
+	const finish = document.createElement('button');
+	finish.className = 'ctrl-btn primary';
+	finish.textContent = 'Finish exam';
+	finish.onclick = () => finishExam(false);
+
+	bar.appendChild(time);
+	bar.appendChild(count);
+	bar.appendChild(hint);
+	bar.appendChild(finish);
+
+	const list = document.createElement('div');
+	list.id = 'exam-list';
+
+	view.appendChild(bar);
+	view.appendChild(list);
+	document.querySelector('.wrap')?.appendChild(view);
+}
+
+function startExam() {
+	const pool = allTasks().map((e) => e.task.id);
+	for (let i = pool.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[pool[i], pool[j]] = [pool[j], pool[i]];
+	}
+	exam = {
+		endsAt: Date.now() + EXAM_MINUTES * 60 * 1000,
+		ids: pool.slice(0, Math.min(EXAM_COUNT, pool.length)),
+		marks: {},
+	};
+	examSave();
+	buildExamShell();
+	renderExam();
+	window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function exitExam() {
+	clearInterval(examTicker);
+	examTicker = null;
+	exam = null;
+	examSave();
+	document.body.classList.remove('exam-active');
+	const view = document.getElementById('exam-view');
+	if (view) view.style.display = 'none';
+}
+
+function finishExam(timedOut) {
+	if (!exam) return;
+	clearInterval(examTicker);
+	examTicker = null;
+	const marked = exam.ids.filter((id) => exam.marks[id]);
+	const used = EXAM_MINUTES * 60 * 1000 - Math.max(0, exam.endsAt - Date.now());
+	showExamResults(marked, exam.ids.slice(), used, timedOut);
+}
+
+function showExamResults(marked, ids, usedMs, timedOut) {
+	const overlay = document.createElement('div');
+	overlay.id = 'exam-results';
+	const box = document.createElement('div');
+	box.id = 'exam-results-box';
+
+	const h = document.createElement('h3');
+	h.textContent = timedOut ? "⏰ Time's up" : '🎯 Exam finished';
+	box.appendChild(h);
+
+	const score = document.createElement('div');
+	score.id = 'exam-score';
+	score.textContent = `${marked.length} / ${ids.length}`;
+	box.appendChild(score);
+
+	const sub = document.createElement('div');
+	sub.className = 'exam-sub';
+	sub.textContent = `tasks completed in ${fmtClock(usedMs)}`;
+	box.appendChild(sub);
+
+	const pct = ids.length ? Math.round((marked.length / ids.length) * 100) : 0;
+	const verdict = document.createElement('div');
+	verdict.className = 'exam-verdict';
+	verdict.textContent =
+		pct >= 66
+			? '✓ Above the CKA pass mark (66%) at this pace.'
+			: 'Below the CKA pass mark (66%) — worth another run.';
+	box.appendChild(verdict);
+
+	const list = document.createElement('div');
+	list.className = 'exam-review-list';
+	ids.forEach((id, i) => {
+		const entry = findTask(id);
+		if (!entry) return;
+		const row = document.createElement('div');
+		row.className = 'exam-review-row' + (marked.includes(id) ? ' ok' : '');
+		const mark = document.createElement('span');
+		mark.className = 'exam-review-mark';
+		mark.textContent = marked.includes(id) ? '✓' : '–';
+		const label = document.createElement('span');
+		label.textContent = `${i + 1}. ${entry.task.title}`;
+		row.appendChild(mark);
+		row.appendChild(label);
+		list.appendChild(row);
+	});
+	box.appendChild(list);
+
+	const btns = document.createElement('div');
+	btns.className = 'exam-results-btns';
+
+	const saveBtn = document.createElement('button');
+	saveBtn.className = 'ctrl-btn primary';
+	saveBtn.textContent = `Save ${marked.length} to my progress`;
+	saveBtn.disabled = marked.length === 0;
+	saveBtn.onclick = () => {
+		marked.forEach((id) => (done[id] = true));
+		autoSave();
+		refreshAllButtons();
+		updateOverall();
+		overlay.remove();
+		exitExam();
+		asFlash(`✓ ${marked.length} saved to your progress`);
+	};
+
+	const closeBtn = document.createElement('button');
+	closeBtn.className = 'ctrl-btn';
+	closeBtn.textContent = 'Close without saving';
+	closeBtn.onclick = () => {
+		overlay.remove();
+		exitExam();
+	};
+
+	btns.appendChild(saveBtn);
+	btns.appendChild(closeBtn);
+	box.appendChild(btns);
+
+	overlay.appendChild(box);
+	document.body.appendChild(overlay);
+}
+
+function confirmStartExam() {
+	if (exam) {
+		asFlash('An exam is already running');
+		return;
+	}
+	const overlay = document.createElement('div');
+	overlay.id = 'exam-results';
+	const box = document.createElement('div');
+	box.id = 'exam-results-box';
+
+	const h = document.createElement('h3');
+	h.textContent = '🎯 Exam simulation';
+	box.appendChild(h);
+
+	const ul = document.createElement('ul');
+	ul.className = 'exam-rules';
+	[
+		`${EXAM_COUNT} random tasks, ${EXAM_MINUTES} minutes`,
+		'Solutions and hints stay hidden until you finish',
+		'Do the tasks on your own cluster, mark each one as you go',
+		'Your study progress is untouched unless you save at the end',
+	].forEach((t) => {
+		const li = document.createElement('li');
+		li.textContent = t;
+		ul.appendChild(li);
+	});
+	box.appendChild(ul);
+
+	const btns = document.createElement('div');
+	btns.className = 'exam-results-btns';
+	const go = document.createElement('button');
+	go.className = 'ctrl-btn primary';
+	go.textContent = 'Start the clock';
+	go.onclick = () => {
+		overlay.remove();
+		startExam();
+	};
+	const cancel = document.createElement('button');
+	cancel.className = 'ctrl-btn';
+	cancel.textContent = 'Cancel';
+	cancel.onclick = () => overlay.remove();
+	btns.appendChild(go);
+	btns.appendChild(cancel);
+	box.appendChild(btns);
+
+	overlay.appendChild(box);
+	overlay.addEventListener('click', (e) => {
+		if (e.target === overlay) overlay.remove();
+	});
+	document.body.appendChild(overlay);
+}
+
+// Restore an exam that was still running when the page was closed.
+function initExam() {
+	const saved = examLoad();
+	if (!saved) return;
+	if (saved.endsAt <= Date.now()) {
+		try {
+			localStorage.removeItem(EXAM_KEY);
+		} catch (_) {
+			/* storage unavailable */
+		}
+		return;
+	}
+	exam = saved;
+	buildExamShell();
+	renderExam();
+	asFlash('⏱ Exam resumed');
 }
 
 // ── Keyboard shortcut help ────────────────────────────────────────────────────
@@ -527,8 +1035,10 @@ function buildKbdHelp() {
 		['r', 'Random incomplete task'],
 		['c', 'Continue (first incomplete)'],
 		['f', 'Toggle focus mode'],
+		['e', 'Start exam simulation'],
+		['/', 'Search tasks'],
 		['?', 'Show / hide this help'],
-		['Esc', 'Close overlays / exit focus'],
+		['Esc', 'Close overlays / clear search / exit focus'],
 	].forEach(([keys, desc]) => {
 		const row = document.createElement('div');
 		row.className = 'kbd-row';
@@ -561,9 +1071,19 @@ function initKeyboardShortcuts() {
 	document.addEventListener('keydown', (e) => {
 		if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 		if (e.ctrlKey || e.altKey || e.metaKey) return;
+		// While the exam clock runs the tab/jump shortcuts have nothing to act
+		// on — only the help overlay stays reachable.
+		if (exam && e.key !== '?' && e.key !== 'Escape') return;
 		const tabCount = document.querySelectorAll('.tab-btn').length;
 		const idx = getActiveTabIdx();
 		switch (e.key) {
+			case '/':
+				e.preventDefault();
+				focusSearch();
+				break;
+			case 'e':
+				confirmStartExam();
+				break;
 			case 'n':
 				switchTab((idx + 1) % tabCount);
 				break;
@@ -588,6 +1108,7 @@ function initKeyboardShortcuts() {
 				break;
 			case 'Escape':
 				removeKbdHelp();
+				if (clearSearch()) break;
 				if (focusMode) toggleFocusMode();
 				break;
 		}
@@ -609,6 +1130,7 @@ updateOverall();
 })();
 initStorage();
 initKeyboardShortcuts();
+initExam();
 
 // ── Deep-link from tracker (?section=sN) ──────────────────────────────────────
 (function () {

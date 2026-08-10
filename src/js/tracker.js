@@ -32,6 +32,9 @@ const ACCENT = [
 ];
 
 let fileHandle = null;
+// True once the save file's contents have been read into state. Until then we
+// must never write, or we would overwrite the file with empty progress.
+let fileLoaded = false;
 
 function trackerCbs() {
 	return {
@@ -74,7 +77,12 @@ function useTheme() {
 
 function App() {
 	const theme = useTheme();
-	const [done, setDone] = useState({});
+	// Seed from the browser mirror so progress is on screen immediately, with no
+	// file permission involved.
+	const [done, setDone] = useState(function () {
+		const local = mirrorRead('tracker');
+		return local ? local.data : {};
+	});
 	const [open, setOpen] = useState(function () {
 		return loadUi().open || {};
 	});
@@ -84,6 +92,8 @@ function App() {
 	const [copied, setCopied] = useState(null);
 	const [focusMode, setFocusMode] = useState(false);
 	const [showHelp, setShowHelp] = useState(false);
+	const [query, setQuery] = useState('');
+	const searchRef = useRef(null);
 	const doneRef = useRef(done);
 	const tabRef = useRef(tab);
 	const openRef = useRef(open);
@@ -119,16 +129,23 @@ function App() {
 	}, []);
 
 	useEffect(function () {
+		// Read the file into state and switch the bar to active.
+		async function activateHandle(handle) {
+			const data = await readSection(handle, 'tracker');
+			fileHandle = handle;
+			fileLoaded = true;
+			mirrorWrite('tracker', data, false);
+			setDone(data);
+			setBarState('active', handle.name, trackerCbs());
+		}
+
 		window._asLoadFile = async function () {
 			try {
 				const [handle] = await window.showOpenFilePicker({
 					types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
 				});
-				const data = await readSection(handle, 'tracker');
-				fileHandle = handle;
+				await activateHandle(handle);
 				await idbSet(HANDLE_KEY, handle);
-				setDone(data);
-				setBarState('active', handle.name, trackerCbs());
 				asFlash('✓ Progress loaded!');
 			} catch (error) {
 				if (error.name !== 'AbortError') asFlash('Could not load file', '#dc2626');
@@ -142,8 +159,10 @@ function App() {
 					types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
 				});
 				fileHandle = handle;
+				fileLoaded = true;
 				await idbSet(HANDLE_KEY, handle);
 				await writeSection(handle, 'tracker', doneRef.current);
+				mirrorWrite('tracker', doneRef.current, false);
 				setBarState('active', handle.name, trackerCbs());
 				asFlash('✓ Auto-save enabled!');
 			} catch (error) {
@@ -153,11 +172,27 @@ function App() {
 
 		window._asReEnable = async function () {
 			if (!fileHandle) return;
-			if (await canWrite(fileHandle)) {
-				setBarState('active', fileHandle.name, trackerCbs());
-				asFlash('✓ Auto-save re-enabled!');
-			} else {
+			// Called from a click, so requesting permission is allowed here.
+			if (!(await canWrite(fileHandle))) {
 				asFlash('Permission denied', '#dc2626');
+				return;
+			}
+			try {
+				const local = mirrorRead('tracker');
+				if (fileLoaded || (local && local.pending)) {
+					// Local progress is ahead of the file — flush it rather
+					// than re-reading and losing the changes made without
+					// write access.
+					fileLoaded = true;
+					await writeSection(fileHandle, 'tracker', doneRef.current);
+					mirrorWrite('tracker', doneRef.current, false);
+					setBarState('active', fileHandle.name, trackerCbs());
+				} else {
+					await activateHandle(fileHandle);
+				}
+				asFlash('✓ Auto-save re-enabled!');
+			} catch {
+				asFlash('Could not read save file', '#dc2626');
 			}
 		};
 
@@ -227,13 +262,16 @@ function App() {
 		};
 
 		window._asAutoSave = async function (data) {
-			if (!fileHandle) return;
+			// Always mirror first — instant, needs no permission, cannot fail.
+			mirrorWrite('tracker', data, true);
+			if (!fileHandle || !fileLoaded) return;
 			try {
-				if (!(await canWrite(fileHandle))) {
+				if (!(await hasWrite(fileHandle))) {
 					setBarState('perm', null, trackerCbs());
 					return;
 				}
 				await writeSection(fileHandle, 'tracker', data);
+				mirrorWrite('tracker', data, false);
 				asFlash('✓ Saved');
 			} catch {
 				asFlash('Save failed', '#dc2626');
@@ -246,24 +284,43 @@ function App() {
 				return;
 			}
 
-			const handle = await idbGet(HANDLE_KEY);
+			let handle;
+			try {
+				handle = await idbGet(HANDLE_KEY);
+			} catch {
+				handle = null;
+			}
 			if (!handle) {
 				setBarState('none', null, trackerCbs());
 				return;
 			}
 
 			fileHandle = handle;
-			if (!(await canWrite(handle))) {
+			// Page load has no user activation, so we may only *query* the
+			// permission. Chrome resets it to "prompt" between sessions; the
+			// Re-enable button asks for it from a real click.
+			if (!(await hasWrite(handle))) {
 				setBarState('perm', null, trackerCbs());
 				return;
 			}
 
 			try {
-				const stored = await readSection(handle, 'tracker');
-				setDone(stored);
-				setBarState('active', handle.name, trackerCbs());
+				const local = mirrorRead('tracker');
+				if (local && local.pending) {
+					// Local changes never reached the file — keep them and flush.
+					fileLoaded = true;
+					await writeSection(handle, 'tracker', doneRef.current);
+					mirrorWrite('tracker', doneRef.current, false);
+					setBarState('active', handle.name, trackerCbs());
+				} else {
+					await activateHandle(handle);
+				}
 				asFlash('✓ Progress loaded');
-			} catch {
+			} catch (error) {
+				if (isPermError(error)) {
+					setBarState('perm', null, trackerCbs());
+					return;
+				}
 				await idbDel(HANDLE_KEY);
 				fileHandle = null;
 				setBarState('none', null, trackerCbs());
@@ -286,7 +343,10 @@ function App() {
 		function handleKey(e) {
 			if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 			if (e.ctrlKey || e.altKey || e.metaKey) return;
-			if (e.key === 'f') {
+			if (e.key === '/') {
+				e.preventDefault();
+				if (searchRef.current) searchRef.current.focus();
+			} else if (e.key === 'f') {
 				setFocusMode(function (v) {
 					return !v;
 				});
@@ -299,6 +359,7 @@ function App() {
 			} else if (e.key === 'Escape') {
 				setShowHelp(false);
 				setFocusMode(false);
+				setQuery('');
 			}
 		}
 		document.addEventListener('keydown', handleKey);
@@ -399,6 +460,58 @@ function App() {
 		return total ? Math.round((completed / total) * 100) : 0;
 	})();
 
+	// Progress against the five domains the exam actually scores, rather than
+	// against the nine teaching sections. Troubleshooting is 30% of the paper —
+	// raw task counts hide that completely.
+	const domainStats = EXAM_DOMAINS.map(function (domain) {
+		let total = 0;
+		let completed = 0;
+		SECTIONS.forEach(function (section, index) {
+			if (section.domain !== domain.id) return;
+			const stats = getSectionStats(section, index);
+			total += stats.total;
+			completed += stats.completed;
+		});
+		return Object.assign({}, domain, {
+			total: total,
+			completed: completed,
+			pct: total ? Math.round((completed / total) * 100) : 0,
+		});
+	});
+
+	// Weighted readiness: each domain contributes its exam weight, not its size.
+	const readiness = Math.round(
+		domainStats.reduce(function (sum, d) {
+			return sum + (d.pct * d.weight) / 100;
+		}, 0)
+	);
+
+	// ── Search ───────────────────────────────────────────────────────────────
+	const trimmedQuery = query.trim().toLowerCase();
+	const searching = trimmedQuery.length > 0;
+
+	function topicMatches(topic) {
+		if (!searching) return true;
+		const haystack = [topic.title]
+			.concat(topic.tasks, topic.cmds || [], topic.labs || [])
+			.join(' ')
+			.toLowerCase();
+		return haystack.includes(trimmedQuery);
+	}
+
+	// While searching, a section shows only its matching topics and drops out
+	// entirely when nothing in it matches.
+	const visibleSections = SECTIONS.map(function (section, sectionIndex) {
+		const topics = section.topics.filter(topicMatches);
+		return { section: section, sectionIndex: sectionIndex, topics: topics };
+	}).filter(function (entry) {
+		return entry.topics.length > 0;
+	});
+
+	const matchCount = visibleSections.reduce(function (sum, entry) {
+		return sum + entry.topics.length;
+	}, 0);
+
 	return (
 		<div
 			style={{
@@ -446,7 +559,7 @@ function App() {
 						<strong style={{ color: theme.text, fontWeight: 500 }}>
 							Kubernetes v1.35
 						</strong>{' '}
-						— CKA exam version as of April 2026.
+						— CKA exam version, verified August 2026.
 					</span>
 					<a
 						href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks"
@@ -492,6 +605,75 @@ function App() {
 				<p style={{ margin: '5px 0 0', fontSize: 12, color: theme.textTer }}>
 					{overall}% overall complete
 				</p>
+				<div
+					style={{
+						marginTop: 14,
+						padding: '14px 16px',
+						background: theme.bgSec,
+						border: '0.5px solid ' + theme.border,
+						borderRadius: 12,
+					}}
+				>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'baseline',
+							gap: 8,
+							marginBottom: 4,
+						}}
+					>
+						<span style={{ fontSize: 22, fontWeight: 600, color: theme.text }}>
+							{readiness}%
+						</span>
+						<span style={{ fontSize: 13, color: theme.textSec }}>exam readiness</span>
+					</div>
+					<p style={{ margin: '0 0 12px', fontSize: 11, color: theme.textTer }}>
+						Weighted by the official CKA domain percentages — not by how many topics
+						each one has.
+					</p>
+					{domainStats.map(function (d) {
+						return (
+							<div key={d.id} style={{ marginBottom: 9 }}>
+								<div
+									style={{
+										display: 'flex',
+										justifyContent: 'space-between',
+										gap: 10,
+										fontSize: 12,
+										color: theme.textSec,
+										marginBottom: 3,
+									}}
+								>
+									<span>
+										{d.title}{' '}
+										<span style={{ color: theme.textTer }}>· {d.weight}%</span>
+									</span>
+									<span style={{ color: theme.textTer, whiteSpace: 'nowrap' }}>
+										{d.completed}/{d.total}
+									</span>
+								</div>
+								<div
+									style={{
+										background: theme.bgTer,
+										borderRadius: 99,
+										height: 5,
+										overflow: 'hidden',
+									}}
+								>
+									<div
+										style={{
+											background: d.pct >= 80 ? '#22c55e' : '#2563eb',
+											height: '100%',
+											width: d.pct + '%',
+											transition: 'width 0.3s',
+											borderRadius: 99,
+										}}
+									/>
+								</div>
+							</div>
+						);
+					})}
+				</div>
 				<div style={{ display: 'flex', gap: 8, margin: '10px 0 4px', flexWrap: 'wrap' }}>
 					{[
 						[
@@ -559,6 +741,48 @@ function App() {
 			<div
 				style={{
 					display: 'flex',
+					alignItems: 'center',
+					gap: 10,
+					marginBottom: 12,
+				}}
+			>
+				<input
+					ref={searchRef}
+					type="search"
+					value={query}
+					placeholder="Search topics, commands and labs…  (/)"
+					autoComplete="off"
+					onChange={function (e) {
+						setQuery(e.target.value);
+					}}
+					onKeyDown={function (e) {
+						if (e.key === 'Escape') {
+							setQuery('');
+							e.target.blur();
+						}
+					}}
+					style={{
+						flex: 1,
+						minWidth: 0,
+						padding: '8px 12px',
+						borderRadius: 10,
+						border: '0.5px solid ' + theme.border,
+						background: theme.bgSec,
+						color: theme.text,
+						fontSize: 13,
+						fontFamily: 'inherit',
+					}}
+				/>
+				{searching && (
+					<span style={{ fontSize: 11, color: theme.textTer, whiteSpace: 'nowrap' }}>
+						{matchCount === 1 ? '1 topic' : matchCount + ' topics'}
+					</span>
+				)}
+			</div>
+
+			<div
+				style={{
+					display: 'flex',
 					gap: 4,
 					marginBottom: 18,
 					background: theme.bgSec,
@@ -597,10 +821,19 @@ function App() {
 				})}
 			</div>
 
+			{tab === 'plan' && searching && matchCount === 0 && (
+				<p style={{ fontSize: 13, color: theme.textTer, padding: '10px 2px' }}>
+					No topic matches “{query.trim()}”. Esc to clear.
+				</p>
+			)}
+
 			{tab === 'plan' &&
-				SECTIONS.map(function (section, sectionIndex) {
+				visibleSections.map(function (entry) {
+					const section = entry.section;
+					const sectionIndex = entry.sectionIndex;
 					const stats = getSectionStats(section, sectionIndex);
-					const sectionOpen = !!open[section.id];
+					// A search result nobody has to click open to read.
+					const sectionOpen = searching || !!open[section.id];
 
 					return (
 						<div
@@ -734,7 +967,7 @@ function App() {
 							</div>
 
 							{sectionOpen &&
-								section.topics.map(function (topic) {
+								entry.topics.map(function (topic) {
 									const topicOpen = !!open[topic.id];
 									const doneCount = topic.tasks.filter(function (_, taskIndex) {
 										return !!done[topic.id + ':' + taskIndex];
@@ -1239,8 +1472,9 @@ function App() {
 						{[
 							['c', 'Continue to next incomplete topic'],
 							['f', 'Toggle focus mode (one section at a time)'],
+							['/', 'Search topics, commands and labs'],
 							['?', 'Show / hide this help'],
-							['Esc', 'Close overlays / exit focus mode'],
+							['Esc', 'Close overlays / clear search / exit focus'],
 						].map(function (row) {
 							return (
 								<div

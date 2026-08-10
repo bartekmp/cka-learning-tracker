@@ -43,14 +43,68 @@ async function idbDel(key) {
 	});
 }
 
+// Query only — safe to call at any time, never prompts.
+async function hasWrite(h) {
+	try {
+		return (await h.queryPermission({ mode: 'readwrite' })) === 'granted';
+	} catch {
+		return false;
+	}
+}
+
+// Prompts if needed — ONLY call this from a real user gesture (click handler).
+// requestPermission() throws SecurityError without user activation.
 async function canWrite(h) {
 	const o = { mode: 'readwrite' };
-	if ((await h.queryPermission(o)) === 'granted') return true;
-	if ((await h.requestPermission(o)) === 'granted') return true;
-	return false;
+	try {
+		if ((await h.queryPermission(o)) === 'granted') return true;
+		return (await h.requestPermission(o)) === 'granted';
+	} catch {
+		return false;
+	}
+}
+
+function isPermError(e) {
+	return e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
 }
 
 const SHARED_MARKER = 'cka-progress-v1';
+
+// ── localStorage mirror ──────────────────────────────────────────────────────
+// Progress is always kept here as well as in the save file. It needs no
+// permission, so a page load can restore progress instantly — the save file is
+// a sync/backup target, not the thing we depend on to show the user their work.
+// `pending` marks a section changed locally but not yet written to the file.
+const MIRROR_KEY = 'cka-progress';
+
+function mirrorLoad() {
+	try {
+		const p = JSON.parse(localStorage.getItem(MIRROR_KEY));
+		if (!p || p._type !== SHARED_MARKER) return null;
+		return p;
+	} catch {
+		return null;
+	}
+}
+
+// Returns { data, pending } or null when nothing is mirrored yet.
+function mirrorRead(section) {
+	const p = mirrorLoad();
+	if (!p || !p[section]) return null;
+	return { data: p[section], pending: !!(p.pending && p.pending[section]) };
+}
+
+function mirrorWrite(section, data, pending) {
+	const p = mirrorLoad() || { _type: SHARED_MARKER, tracker: {}, tasks: {}, pending: {} };
+	p[section] = data;
+	p.pending = Object.assign({}, p.pending, { [section]: !!pending });
+	p.saved = new Date().toISOString();
+	try {
+		localStorage.setItem(MIRROR_KEY, JSON.stringify(p));
+	} catch {
+		/* storage full or disabled — the save file is still the backstop */
+	}
+}
 
 async function readSection(h, section) {
 	const text = await (await h.getFile()).text();
@@ -138,8 +192,8 @@ function setBarState(state, filename, cbs) {
 	} else if (state === 'perm') {
 		icon.textContent = '⚠️';
 		setBarText(text, [
-			{ tag: 'strong', text: 'Click to re-enable auto-save' },
-			' — browser needs one-time permission',
+			{ tag: 'strong', text: 'Click Re-enable to load your progress' },
+			' — your browser asks for file permission once per visit',
 		]);
 		bar.insertBefore(mkBtn('Re-enable', 'amber', cbs.reEnable), fin);
 	} else if (state === 'none') {
@@ -152,14 +206,15 @@ function setBarState(state, filename, cbs) {
 		bar.insertBefore(mkBtn('Load existing', '', cbs.loadFile), fin);
 	} else {
 		// fallback (Firefox etc.)
-		icon.textContent = '⚠️';
+		icon.textContent = '💾';
 		setBarText(text, [
-			'Auto-save is not supported in this browser. Use manual export/import below.',
+			{ tag: 'strong', text: 'Progress is saved in this browser' },
+			' — export a file to back it up or move it to another device.',
 			{ tag: 'br', text: '' },
 			{
 				tag: 'span',
 				style: 'font-size:11px;opacity:0.75',
-				text: 'Auto-save works in: Chrome 86+, Edge 86+, Opera 72+. Not supported in Firefox or Safari.',
+				text: 'Saving straight to a file needs Chrome 86+, Edge 86+ or Opera 72+.',
 			},
 		]);
 		const inp = document.createElement('input');
