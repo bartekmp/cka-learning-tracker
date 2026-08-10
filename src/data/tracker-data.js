@@ -1,11 +1,25 @@
 // Tracker data — loaded before tracker.js
 // Edit this file to update study plan topics, cheatsheet commands, and ADHD tips.
 
+// The official CKA curriculum grades five weighted domains, while the study
+// plan below is organised into nine teaching sections. Each section carries a
+// `domain` key so progress can be reported against what the exam actually
+// scores. Weights are from CKA_Curriculum_v1.35.pdf — keep them in sync when
+// the curriculum version changes.
+const EXAM_DOMAINS = [
+	{ id: 'trouble', title: 'Troubleshooting', weight: 30 },
+	{ id: 'arch', title: 'Cluster Architecture, Installation & Configuration', weight: 25 },
+	{ id: 'network', title: 'Services & Networking', weight: 20 },
+	{ id: 'workloads', title: 'Workloads & Scheduling', weight: 15 },
+	{ id: 'storage', title: 'Storage', weight: 10 },
+];
+
 const SECTIONS = [
 	{
 		id: 's1',
 		title: 'Core Concepts',
 		schedule: '~12 hrs',
+		domain: 'arch',
 		topics: [
 			{
 				id: 's1t1',
@@ -132,6 +146,7 @@ const SECTIONS = [
 		id: 's2',
 		title: 'Scheduling',
 		schedule: '~8 hrs',
+		domain: 'workloads',
 		topics: [
 			{
 				id: 's2t1',
@@ -235,6 +250,7 @@ const SECTIONS = [
 		id: 's3',
 		title: 'Logging & Monitoring',
 		schedule: '~3 hrs',
+		domain: 'trouble',
 		topics: [
 			{
 				id: 's3t1',
@@ -274,6 +290,7 @@ const SECTIONS = [
 		id: 's4',
 		title: 'Application Lifecycle Management',
 		schedule: '~8 hrs',
+		domain: 'workloads',
 		topics: [
 			{
 				id: 's4t1',
@@ -390,12 +407,34 @@ const SECTIONS = [
 					'Task: autoscale php-apache, generate load with a busybox loop, watch replicas increase',
 				],
 			},
+			{
+				id: 's4t9',
+				title: 'Native Sidecar Containers',
+				tasks: [
+					'Know the trigger: an initContainer with restartPolicy: Always IS a sidecar',
+					'Understand ordering — sidecars start before app containers and stop after them',
+					'Contrast with a plain second container in spec.containers (no ordering guarantee)',
+					'Know why a plain initContainer that never exits blocks the pod forever',
+					'Add a log-shipper sidecar sharing an emptyDir with the app container',
+					'Understand sidecars do not block Job completion, unlike normal containers',
+				],
+				cmds: [
+					'kubectl explain pod.spec.initContainers.restartPolicy',
+					'kubectl logs <pod> -c <sidecar>',
+					"kubectl get pod <pod> -o jsonpath='{.spec.initContainers[*].name}'",
+				],
+				labs: [
+					'Task: add a sidecar that tails /var/log/app.log from a shared emptyDir',
+					'Task: prove ordering — make the sidecar write a file the app container reads at startup',
+				],
+			},
 		],
 	},
 	{
 		id: 's5',
 		title: 'Cluster Maintenance',
 		schedule: '~8 hrs',
+		domain: 'arch',
 		topics: [
 			{
 				id: 's5t1',
@@ -602,12 +641,33 @@ const SECTIONS = [
 					'KodeKloud: Container Runtimes / CRI Lab',
 				],
 			},
+			{
+				id: 's5t10',
+				title: 'Pod Disruption Budgets',
+				tasks: [
+					'Know the difference between voluntary (drain) and involuntary (node crash) disruption',
+					'Create a PDB with minAvailable, then with maxUnavailable',
+					'Watch kubectl drain block when a PDB would be violated',
+					'Diagnose a drain that hangs — describe the PDB and check ALLOWED DISRUPTIONS',
+					'Understand a PDB with minAvailable equal to replicas blocks drain forever',
+				],
+				cmds: [
+					'kubectl create pdb <n> --selector=app=<label> --min-available=2',
+					'kubectl get pdb',
+					'kubectl describe pdb <n>',
+					'kubectl drain <node> --ignore-daemonsets --delete-emptydir-data',
+				],
+				labs: [
+					'Task: 3-replica deployment with minAvailable=3, drain the node, watch it block, then fix it',
+				],
+			},
 		],
 	},
 	{
 		id: 's6',
 		title: 'Security',
 		schedule: '~12 hrs',
+		domain: 'arch',
 		topics: [
 			{
 				id: 's6t1',
@@ -721,12 +781,31 @@ const SECTIONS = [
 					'Killer Coda: NetworkPolicy scenarios (free)',
 				],
 			},
+			{
+				id: 's6t8',
+				title: 'Validating Admission Policy',
+				tasks: [
+					'Know it is the in-tree, webhook-free way to enforce policy (GA since v1.30)',
+					'Understand the pair: ValidatingAdmissionPolicy + ValidatingAdmissionPolicyBinding',
+					'Write a CEL expression, e.g. object.spec.replicas <= 5',
+					'Bind a policy to namespaces with a namespaceSelector',
+					'Use validationActions Warn / Audit / Deny and know the difference',
+					'Test a rejection and read the CEL error message',
+				],
+				cmds: [
+					'kubectl get validatingadmissionpolicy',
+					'kubectl get validatingadmissionpolicybinding',
+					'kubectl explain validatingadmissionpolicy.spec.validations',
+				],
+				labs: ['Task: block Deployments with more than 5 replicas, then prove it rejects'],
+			},
 		],
 	},
 	{
 		id: 's7',
 		title: 'Storage',
 		schedule: '~6 hrs',
+		domain: 'storage',
 		topics: [
 			{
 				id: 's7t1',
@@ -764,12 +843,33 @@ const SECTIONS = [
 				cmds: ['kubectl get sc', 'kubectl describe sc <n>'],
 				labs: ['KodeKloud: Storage Classes Lab'],
 			},
+			{
+				id: 's7t4',
+				title: 'Volume Snapshots',
+				tasks: [
+					'Know the three objects: VolumeSnapshotClass, VolumeSnapshot, VolumeSnapshotContent',
+					'Create a VolumeSnapshot from an existing PVC',
+					'Restore a new PVC from a snapshot via dataSource',
+					'Check readyToUse on the snapshot before restoring',
+					'Understand that the CSI driver must support snapshots',
+				],
+				cmds: [
+					'kubectl get volumesnapshotclass',
+					'kubectl get volumesnapshot',
+					'kubectl describe volumesnapshot <n>',
+					"kubectl get volumesnapshot <n> -o jsonpath='{.status.readyToUse}'",
+				],
+				labs: [
+					'Task: snapshot a PVC, delete data in the pod, restore into a fresh PVC and verify',
+				],
+			},
 		],
 	},
 	{
 		id: 's8',
 		title: 'Networking',
 		schedule: '~10 hrs',
+		domain: 'network',
 		topics: [
 			{
 				id: 's8t1',
@@ -846,6 +946,7 @@ const SECTIONS = [
 		id: 's9',
 		title: 'Troubleshooting',
 		schedule: '~10 hrs',
+		domain: 'trouble',
 		topics: [
 			{
 				id: 's9t1',
@@ -915,6 +1016,27 @@ const SECTIONS = [
 					"kubectl get pods -n kube-system | grep -E 'coredns|proxy'",
 				],
 				labs: ['KodeKloud: Network Troubleshooting Lab'],
+			},
+			{
+				id: 's9t5',
+				title: 'kubectl debug & Ephemeral Containers',
+				tasks: [
+					'Attach a debug container to a running pod: kubectl debug -it <pod> --image=busybox:1.28 --target=<container>',
+					'Understand why exec fails on distroless images (no shell) and debug does not',
+					'Copy a crashing pod with a changed command: kubectl debug <pod> --copy-to=<n> -- sh',
+					'Debug a node by getting a privileged host shell: kubectl debug node/<node> -it --image=busybox:1.28',
+					'Read /host on a node debug pod to inspect kubelet config and logs',
+				],
+				cmds: [
+					'kubectl debug -it <pod> --image=busybox:1.28 --target=<container>',
+					'kubectl debug <pod> --copy-to=<n> --set-image=*=<img>',
+					'kubectl debug node/<node> -it --image=busybox:1.28',
+					'kubectl get pod <pod> -o jsonpath={.spec.ephemeralContainers}',
+				],
+				labs: [
+					'Task: run a distroless pod, prove exec fails, then debug into it',
+					'Task: copy a CrashLoopBackOff pod with the command replaced by sleep, then inspect it',
+				],
 			},
 		],
 	},

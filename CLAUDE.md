@@ -6,7 +6,7 @@ Project-specific facts and guidelines for AI coding agents working in this repo.
 
 A **fully static, local-only** study site for the Certified Kubernetes Administrator (CKA) exam, built with ADHD-friendly UX in mind. It has two main pages:
 
-- **Study Tracker** (`cka-tracker.html`) — React (bundled via esbuild) + localStorage persistence. Covers the 9 CKA exam domains with topics, cheatsheet commands, ADHD tips, and progress tracking.
+- **Study Tracker** (`cka-tracker.html`) — React (bundled via esbuild) + localStorage persistence. Covers the syllabus in 9 teaching sections with topics, cheatsheet commands, ADHD tips, and progress tracking. Note the exam itself grades **5 weighted domains**, not 9 — each section carries a `domain` key mapping it to one, and the tracker reports weighted "exam readiness" from that. See `EXAM_DOMAINS` in `src/data/tracker-data.js`.
 - **Practice Tasks** (`cka-practice-tasks.html`) — Vanilla JS IIFE. Step-by-step exam-style tasks with copy-ready commands, hints, and difficulty ratings.
 
 There is **no backend, no server, no API, no authentication**. All state lives in `localStorage`. Never add a server-side component, database, or external API dependency.
@@ -132,14 +132,39 @@ esbuild is configured with `loader: { '.js': 'jsx' }`. Do not rename tracker.js 
 
 React and ReactDOM are bundled by esbuild from `node_modules`. All `devDependencies` in `package.json` are build/lint tools only. Nothing is loaded from a CDN at runtime. No fetch calls, no XHR, no WebSockets.
 
-### localStorage is the only persistence layer
+### Browser storage is the only persistence layer
 
 Progress, theme preference, Pomodoro timer state, and any other user data must go in `localStorage`. Keys in use:
 
-- `cka-tracker` — study tracker progress
-- `cka-tasks` — practice task completion state
+- `cka-progress` — progress for both pages, the mirror of the save file (see below)
+- `cka-tracker-ui` — tracker tab + expanded sections
+- `cka-tasks-ui` — practice tasks UI state
 - `cka-theme` — light/dark preference
 - `cka-pomodoro` — Pomodoro timer state and custom durations
+
+IndexedDB (`cka-autosave` / `handles`) holds one entry, `cka-handle` — the
+`FileSystemFileHandle` of the user's save file. Handles cannot go in
+`localStorage`; they are not JSON-serializable.
+
+### The save file is a sync target, not the source of truth
+
+Optional auto-save to a real `.json` file uses the File System Access API
+(`src/js/autosave.js`). Two rules keep it from losing progress:
+
+- **`localStorage` is always written first** (`mirrorWrite`), so progress
+  survives a reload with no permission prompt and no blank page. The `pending`
+  flag per section means "changed locally, not yet in the file"; on the next
+  successful file write it clears. On load, a pending section wins over the
+  file's contents — otherwise the file wins (it may come from another machine).
+- **`requestPermission()` requires transient user activation**, so it may only
+  be called from a click handler. Use `canWrite()` there; everywhere else —
+  page load, autosave — use the query-only `hasWrite()`. Calling
+  `requestPermission()` on load throws `SecurityError` and rejects the init
+  promise, which silently leaves the autosave bar stuck on "Setting up…".
+
+Chrome resets a stored handle's permission to `prompt` between sessions, so the
+one-click "Re-enable" step on a new visit is unavoidable — it is the browser's
+model, not something the app can cache.
 
 ### Pomodoro widget (pomodoro.js)
 
