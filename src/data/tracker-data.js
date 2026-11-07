@@ -428,6 +428,29 @@ const SECTIONS = [
 					'Task: prove ordering — make the sidecar write a file the app container reads at startup',
 				],
 			},
+			{
+				id: 's4t10',
+				title: 'Liveness, Readiness & Startup Probes',
+				tasks: [
+					'Know what each probe does: liveness restarts the container, readiness pulls it out of Service endpoints, startup delays the other two',
+					'Add an httpGet livenessProbe and watch the restart count climb when it fails',
+					'Add a readinessProbe and watch the pod leave the Service endpoint list',
+					'Use a startupProbe for a slow-booting app instead of a huge initialDelaySeconds',
+					'Know the four handlers: httpGet, exec, tcpSocket, grpc',
+					'Tune initialDelaySeconds, periodSeconds, failureThreshold, timeoutSeconds',
+					'Diagnose a CrashLoopBackOff caused by an over-aggressive liveness probe',
+				],
+				cmds: [
+					'kubectl explain pod.spec.containers.livenessProbe',
+					'kubectl describe pod <pod>',
+					'kubectl get endpoints <svc>',
+					"kubectl get pod <pod> -o jsonpath='{.status.containerStatuses[*].restartCount}'",
+				],
+				labs: [
+					'Task: point a liveness probe at a path that does not exist, then read the restart count climb',
+					'Task: prove a failing readiness probe removes the pod from Service endpoints',
+				],
+			},
 		],
 	},
 	{

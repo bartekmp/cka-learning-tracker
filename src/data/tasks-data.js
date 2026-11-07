@@ -1002,6 +1002,72 @@ const SECTIONS = [
 					'The pod reaches Running with both containers up, and kubectl logs -c log-shipper streams the timestamps the app is writing.',
 				note: 'Drop restartPolicy: Always and the pod hangs in Init forever, because a normal initContainer must exit before the next one runs. Sidecars also do not keep a Job from completing, which normal extra containers do.',
 			},
+			{
+				id: 't53',
+				tag: 'essential',
+				title: 'Debug a pod killed by its own liveness probe',
+				difficulty: 'medium',
+				scenario:
+					'A deployment is stuck restarting every 30 seconds. The container is healthy, but its liveness probe points at a path that does not exist. Diagnose it from the events, fix the probe, then prove how a readiness probe differs by watching Service endpoints.',
+				steps: [
+					{
+						label: 'Step 1 — deploy the broken pod',
+						desc: 'nginx serves / fine, but the probe asks for /healthz, which returns 404.',
+						code: [
+							'kubectl apply -f - <<EOF\napiVersion: v1\nkind: Pod\nmetadata:\n  name: probe-demo\n  labels:\n    app: probe-demo\nspec:\n  containers:\n    - name: web\n      image: nginx\n      livenessProbe:\n        httpGet:\n          path: /healthz\n          port: 80\n        initialDelaySeconds: 3\n        periodSeconds: 5\nEOF',
+						],
+					},
+					{
+						label: 'Step 2 — watch it restart',
+						desc: 'RESTARTS climbs every few seconds. The container itself never crashed — the kubelet is killing it.',
+						code: ['kubectl get pod probe-demo -w'],
+					},
+					{
+						label: 'Step 3 — find the cause in the events',
+						desc: 'Look for "Liveness probe failed: HTTP probe failed with statuscode: 404" and "Container web failed liveness probe, will be restarted".',
+						code: ['kubectl describe pod probe-demo'],
+					},
+					{
+						label: 'Step 4 — confirm the restart count directly',
+						desc: '',
+						code: [
+							"kubectl get pod probe-demo -o jsonpath='{.status.containerStatuses[*].restartCount}'",
+						],
+					},
+					{
+						label: 'Step 5 — fix the probe path',
+						desc: 'Point it at / which nginx actually serves. The restarts stop.',
+						code: [
+							'kubectl patch pod probe-demo -p \'{"spec":{"containers":[{"name":"web","livenessProbe":{"httpGet":{"path":"/","port":80}}}]}}\'',
+							'kubectl delete pod probe-demo --wait=false',
+						],
+					},
+					{
+						label: 'Step 6 — now contrast with a readiness probe',
+						desc: 'A failing readiness probe does NOT restart the container — it removes the pod from the Service endpoints.',
+						code: [
+							'kubectl apply -f - <<EOF\napiVersion: v1\nkind: Pod\nmetadata:\n  name: ready-demo\n  labels:\n    app: ready-demo\nspec:\n  containers:\n    - name: web\n      image: nginx\n      readinessProbe:\n        httpGet:\n          path: /nope\n          port: 80\n        periodSeconds: 5\nEOF',
+							'kubectl expose pod ready-demo --port=80 --name=ready-svc',
+						],
+					},
+					{
+						label: 'Step 7 — prove the endpoint list is empty',
+						desc: 'The pod is Running but 0/1 READY, and the Service has no endpoints to route to.',
+						code: ['kubectl get pod ready-demo', 'kubectl get endpoints ready-svc'],
+					},
+					{
+						label: 'Step 8 — clean up',
+						desc: '',
+						code: [
+							'kubectl delete pod probe-demo ready-demo --ignore-not-found',
+							'kubectl delete svc ready-svc --ignore-not-found',
+						],
+					},
+				],
+				expected:
+					'probe-demo restarts repeatedly with a 404 liveness failure in its events and stops once the path is fixed. ready-demo stays Running at 0/1 READY and ready-svc has no endpoints.',
+				note: 'The exam tell: RESTARTS climbing with no crash in the container logs means the liveness probe, not the app. Liveness restarts, readiness de-routes, startup just buys boot time — a startupProbe is the right fix for a slow app, never a long initialDelaySeconds on liveness.',
+			},
 		],
 	},
 	{
