@@ -557,9 +557,9 @@ function App() {
 					<span>
 						Based on{' '}
 						<strong style={{ color: theme.text, fontWeight: 500 }}>
-							Kubernetes v1.35
+							Kubernetes v1.37
 						</strong>{' '}
-						— CKA exam version, verified August 2026.
+						— CKA exam version, verified November 2026.
 					</span>
 					<a
 						href="https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks"

@@ -1118,7 +1118,7 @@ const SECTIONS = [
 				],
 				expected:
 					'post-backup deployment no longer exists. Cluster is healthy. All pre-backup resources are intact.',
-				note: 'Not in the current CKA v1.35 curriculum — etcd backup was removed from the exam in recent revisions. Still valuable Kubernetes knowledge, but deprioritise it for exam prep.',
+				note: 'Not in the current CKA v1.37 curriculum — etcd backup was removed from the exam in recent revisions. Still valuable Kubernetes knowledge, but deprioritise it for exam prep.',
 			},
 			{
 				id: 't33',
@@ -1190,7 +1190,7 @@ const SECTIONS = [
 				title: 'Install and manage a release with Helm',
 				difficulty: 'medium',
 				scenario:
-					'Use Helm to install nginx from the Bitnami repository, inspect the release, upgrade it with a custom value, roll back, and uninstall. Helm is explicitly tested in the CKA v1.35 curriculum.',
+					'Use Helm to install nginx from the Bitnami repository, inspect the release, upgrade it with a custom value, roll back, and uninstall. Helm is explicitly tested in the CKA v1.37 curriculum.',
 				steps: [
 					{
 						label: 'Step 1 — verify Helm is installed',
@@ -1362,8 +1362,8 @@ const SECTIONS = [
 						desc: '',
 						code: [
 							'sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl',
-							'curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg',
-							"echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list",
+							'curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.37/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg',
+							"echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.37/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list",
 							'sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl',
 							'sudo apt-mark hold kubelet kubeadm kubectl',
 						],
@@ -2205,7 +2205,7 @@ const SECTIONS = [
 				title: 'Route HTTP traffic with the Gateway API',
 				difficulty: 'hard',
 				scenario:
-					"The Gateway API is the modern successor to Ingress and is explicitly in the CKA v1.35 curriculum. Install the Gateway API CRDs, deploy Envoy Gateway as the controller, then create a Gateway and an HTTPRoute that routes /a to one service and /b to another. Use Killercoda's Kubernetes playground.",
+					"The Gateway API is the modern successor to Ingress and is explicitly in the CKA v1.37 curriculum. Install the Gateway API CRDs, deploy Envoy Gateway as the controller, then create a Gateway and an HTTPRoute that routes /a to one service and /b to another. Use Killercoda's Kubernetes playground.",
 				steps: [
 					{
 						label: 'Step 1 — install the Gateway API standard CRDs',

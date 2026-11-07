@@ -4,7 +4,7 @@
 // The official CKA curriculum grades five weighted domains, while the study
 // plan below is organised into nine teaching sections. Each section carries a
 // `domain` key so progress can be reported against what the exam actually
-// scores. Weights are from CKA_Curriculum_v1.35.pdf — keep them in sync when
+// scores. Weights are from CKA_Curriculum_v1.37.pdf — keep them in sync when
 // the curriculum version changes.
 const EXAM_DOMAINS = [
 	{ id: 'trouble', title: 'Troubleshooting', weight: 30 },
@@ -473,9 +473,9 @@ const SECTIONS = [
 			},
 			{
 				id: 's5t3',
-				title: 'etcd Backup & Restore (not in v1.35 exam)',
+				title: 'etcd Backup & Restore (not in v1.37 exam)',
 				tasks: [
-					'⚠ Not tested in the current CKA v1.35 curriculum — deprioritise if short on time',
+					'⚠ Not tested in the current CKA v1.37 curriculum — deprioritise if short on time',
 					'Take snapshot — memorise all 4 flags (endpoint + 3 certs)',
 					'Verify snapshot: etcdctl snapshot status ... --write-out=table',
 					'Restore with --data-dir flag pointing to new dir',
@@ -1182,7 +1182,7 @@ const CHEATSHEET = [
 		],
 	},
 	{
-		cat: 'etcd backup (not in v1.35 exam)',
+		cat: 'etcd backup (not in v1.37 exam)',
 		items: [
 			{
 				cmd: 'ETCDCTL_API=3 etcdctl snapshot save /backup/snap.db \\\n  --endpoints=https://127.0.0.1:2379 \\\n  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\\n  --cert=/etc/kubernetes/pki/etcd/server.crt \\\n  --key=/etc/kubernetes/pki/etcd/server.key',
@@ -1292,7 +1292,7 @@ const TIPS = [
 	"Before every session: write ONE goal. E.g. 'Get PVCs working from memory without notes.'",
 	'Break things deliberately — misconfigure a deployment, then debug it. Far more engaging.',
 	'Docs open = good. Videos playing passively = bad. Struggle first, consult docs second.',
-	'Highest-value exam topics (v1.35): Troubleshooting (30%), cluster upgrade, RBAC, Helm/Kustomize, Gateway API, HPA, NetworkPolicy. etcd backup is no longer in the exam.',
+	'Highest-value exam topics (v1.37): Troubleshooting (30%), cluster upgrade, RBAC, Helm/Kustomize, Gateway API, HPA, NetworkPolicy. etcd backup is no longer in the exam.',
 	"killer.sh is harder than the real exam. Scoring 70%+ there means you're likely ready.",
 	'kubectl --dry-run=client -o yaml is your best friend. Generate everything, never type YAML cold.',
 	'Local cluster (minikube/kind) lets you break things freely. More engaging than scripted labs.',
