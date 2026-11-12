@@ -511,20 +511,34 @@ function jumpToTask(sectionIdx, taskId) {
 	}, 80);
 }
 
-function jumpToRandomTask() {
-	const pool = [];
-	SECTIONS.forEach((s, si) => {
-		s.tasks.forEach((t) => {
-			if (!done[t.id]) pool.push({ sectionIdx: si, taskId: t.id });
+// Picks the domain with the most exam points still on the table — its exam
+// weight times the share of its tasks not done yet — then a random unfinished
+// task inside it. The user gets one thing to do, not a list to choose from.
+function weakestDomain() {
+	let best = null;
+	EXAM_DOMAINS.forEach((domain) => {
+		const tasks = [];
+		SECTIONS.forEach((s, si) => {
+			if (s.domain !== domain.id) return;
+			s.tasks.forEach((t) => tasks.push({ sectionIdx: si, taskId: t.id }));
 		});
+		const open = tasks.filter((t) => !done[t.taskId]);
+		if (!open.length) return;
+		const score = domain.weight * (open.length / tasks.length);
+		if (!best || score > best.score) best = { domain, open, score };
 	});
-	if (!pool.length) {
+	return best;
+}
+
+function pickTaskForMe() {
+	const weakest = weakestDomain();
+	if (!weakest) {
 		asFlash('🎉 All tasks done!');
 		return;
 	}
-	const pick = pool[Math.floor(Math.random() * pool.length)];
+	const pick = weakest.open[Math.floor(Math.random() * weakest.open.length)];
 	jumpToTask(pick.sectionIdx, pick.taskId);
-	asFlash('🎲 Random task!');
+	asFlash(`🎲 ${weakest.domain.title} — your biggest gap (${weakest.domain.weight}% of exam)`);
 }
 
 // ── Controls bar ─────────────────────────────────────────────────────────────
@@ -549,9 +563,9 @@ function buildControls() {
 
 	const randBtn = document.createElement('button');
 	randBtn.className = 'ctrl-btn';
-	randBtn.title = 'Jump to a random incomplete task (R)';
-	randBtn.textContent = '🎲 Random task';
-	randBtn.onclick = jumpToRandomTask;
+	randBtn.title = 'Picks an unfinished task from your weakest exam domain (R)';
+	randBtn.textContent = '🎲 Pick for me';
+	randBtn.onclick = pickTaskForMe;
 
 	const focusBtn = document.createElement('button');
 	focusBtn.id = 'focus-btn';
@@ -1037,7 +1051,7 @@ function buildKbdHelp() {
 	[
 		['n', 'Next section'],
 		['p', 'Previous section'],
-		['r', 'Random incomplete task'],
+		['r', 'Pick a task for me (weakest domain)'],
 		['c', 'Continue (first incomplete)'],
 		['f', 'Toggle focus mode'],
 		['e', 'Start exam simulation'],
@@ -1096,7 +1110,7 @@ function initKeyboardShortcuts() {
 				switchTab((idx - 1 + tabCount) % tabCount);
 				break;
 			case 'r':
-				jumpToRandomTask();
+				pickTaskForMe();
 				break;
 			case 'c': {
 				const info = findFirstIncomplete();

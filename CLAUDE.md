@@ -6,7 +6,7 @@ Project-specific facts and guidelines for AI coding agents working in this repo.
 
 A **fully static, local-only** study site for the Certified Kubernetes Administrator (CKA) exam, built with ADHD-friendly UX in mind. It has two main pages:
 
-- **Study Tracker** (`cka-tracker.html`) — React (bundled via esbuild) + localStorage persistence. Covers the syllabus in 9 teaching sections with topics, cheatsheet commands, ADHD tips, and progress tracking. Note the exam itself grades **5 weighted domains**, not 9 — each section carries a `domain` key mapping it to one, and the tracker reports weighted "exam readiness" from that. See `EXAM_DOMAINS` in `src/data/tracker-data.js`.
+- **Study Tracker** (`cka-tracker.html`) — React (bundled via esbuild) + localStorage persistence. Covers the syllabus in 9 teaching sections with topics, cheatsheet commands, ADHD tips, and progress tracking. Note the exam itself grades **5 weighted domains**, not 9 — each section carries a `domain` key mapping it to one, and the tracker reports weighted "exam readiness" from that. See `EXAM_DOMAINS` in `src/data/exam-domains.js` (shared with the practice tasks page, whose "Pick for me" button uses the same weights).
 - **Practice Tasks** (`cka-practice-tasks.html`) — Vanilla JS IIFE. Step-by-step exam-style tasks with copy-ready commands, hints, and difficulty ratings.
 
 There is **no backend, no server, no API, no authentication**. All state lives in `localStorage`. Never add a server-side component, database, or external API dependency.
@@ -45,6 +45,7 @@ src/                   source files (edit these)
     tracker.css        tracker page styles
     tasks.css          practice tasks page styles
   data/
+    exam-domains.js    the 5 weighted exam domains, shared by both pages
     tracker-data.js    all study tracker content (topics, commands, labs, tips)
     tasks-data.js      all practice task content (tasks, steps, hints, commands)
   js/

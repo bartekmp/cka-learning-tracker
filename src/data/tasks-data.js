@@ -5,6 +5,7 @@ const SECTIONS = [
 	{
 		id: 's1',
 		title: 'Core Concepts',
+		domain: 'arch',
 		color: '#60a5fa',
 		tasks: [
 			{
@@ -254,6 +255,7 @@ const SECTIONS = [
 	{
 		id: 's2',
 		title: 'Scheduling',
+		domain: 'workloads',
 		color: '#a78bfa',
 		tasks: [
 			{
@@ -519,6 +521,7 @@ const SECTIONS = [
 	{
 		id: 's3',
 		title: 'Logging & Monitoring',
+		domain: 'trouble',
 		color: '#34d399',
 		tasks: [
 			{
@@ -679,6 +682,7 @@ const SECTIONS = [
 	{
 		id: 's4',
 		title: 'Application Lifecycle',
+		domain: 'workloads',
 		color: '#f59e0b',
 		tasks: [
 			{
@@ -1073,6 +1077,7 @@ const SECTIONS = [
 	{
 		id: 's5',
 		title: 'Cluster Maintenance',
+		domain: 'arch',
 		color: '#f87171',
 		tasks: [
 			{
@@ -1540,6 +1545,7 @@ const SECTIONS = [
 	{
 		id: 's6',
 		title: 'Security',
+		domain: 'arch',
 		color: '#c084fc',
 		tasks: [
 			{
@@ -1849,6 +1855,7 @@ const SECTIONS = [
 	{
 		id: 's7',
 		title: 'Storage',
+		domain: 'storage',
 		color: '#2dd4bf',
 		tasks: [
 			{
@@ -2073,6 +2080,7 @@ const SECTIONS = [
 	{
 		id: 's8',
 		title: 'Networking',
+		domain: 'network',
 		color: '#fb923c',
 		tasks: [
 			{
@@ -2338,6 +2346,7 @@ const SECTIONS = [
 	{
 		id: 's9',
 		title: 'Troubleshooting',
+		domain: 'trouble',
 		color: '#94a3b8',
 		tasks: [
 			{
