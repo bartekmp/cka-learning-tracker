@@ -109,6 +109,17 @@ export default [
 			'no-unused-vars': [noUnusedVars[0], { ...noUnusedVars[1], vars: 'local' }],
 		},
 	},
+	// Quiz data files that add to QUIZ (defined in quiz-data.js).
+	{
+		files: ['src/data/quiz-*.js'],
+		ignores: ['src/data/quiz-data.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: { ...globals.browser, ...globals.es2022, QUIZ: 'readonly', quizQ: 'readonly' },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
 	// Server sync client — IIFE, only shipped in the server-backed build.
 	{
 		files: ['src/js/server-sync.js'],
