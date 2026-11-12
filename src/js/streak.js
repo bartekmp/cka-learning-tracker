@@ -7,6 +7,7 @@
 
 const WEEK_GOAL = 4;
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const WELCOME_BACK_DAYS = 3;
 const HEATMAP_WEEKS = 12;
 const STREAK_UI_KEY = 'cka-streak-ui';
 
@@ -111,6 +112,18 @@ function toggleHeatmap() {
 	renderStreak();
 }
 
+// Whole days since the last day with activity, or null when there is none yet.
+function streakDaysSinceActive(activity, today) {
+	const days = Object.keys(activity)
+		.filter((key) => activity[key] > 0)
+		.sort();
+	if (!days.length) return null;
+	const [y, m, d] = days[days.length - 1].split('-').map(Number);
+	const last = new Date(y, m - 1, d, 12);
+	const now = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+	return Math.round((now - last) / 86400000);
+}
+
 function renderStreak() {
 	const root = document.getElementById('streak-widget');
 	if (!root) return;
@@ -126,13 +139,20 @@ function renderStreak() {
 	root.textContent = '';
 	root.classList.toggle('today-done', todayCount > 0);
 
-	const headline =
+	// After a few days away: no guilt, no catch-up — just one small thing.
+	const away = streakDaysSinceActive(activity, today);
+	const welcomeBack = todayCount === 0 && away !== null && away >= WELCOME_BACK_DAYS;
+
+	let headline =
 		weeks > 0
 			? `🔥 ${weeks}-week streak`
 			: `🌱 Study ${WEEK_GOAL} days this week to start a streak`;
+	if (welcomeBack) headline = '👋 Welcome back — no catch-up needed';
 	root.appendChild(streakEl('div', 'streak-headline', headline));
 
-	const todayText = todayCount > 0 ? `✓ Today: ${todayCount} done` : 'Today: tick off 1 thing';
+	let todayText = todayCount > 0 ? `✓ Today: ${todayCount} done` : 'Today: tick off 1 thing';
+	if (welcomeBack)
+		todayText = weeks > 0 ? `🔥 ${weeks}-week streak is still on` : 'Just 1 thing is enough';
 	root.appendChild(streakEl('div', 'streak-today', todayText));
 
 	const week = streakEl('div', 'streak-week');
