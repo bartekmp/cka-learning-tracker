@@ -26,6 +26,7 @@ const SESSION_COOKIE = 'cka_session';
 const SESSION_DAYS = 30;
 const MAX_BODY_BYTES = 1024 * 1024;
 const LOGIN_MAX_FAILURES = 10;
+const LOGIN_MAX_FAILURES_GLOBAL = 50;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
 const CONTENT_TYPES = {
@@ -122,30 +123,47 @@ function isLoggedIn(req) {
 }
 
 // ── Login throttle ───────────────────────────────────────────────────────────
-// In memory, per client address. Enough to make password guessing impractical.
+// In memory. Two limits, because a client address is only as trustworthy as
+// the proxy in front of us:
+//   - per client, so one guesser cannot lock the owner out;
+//   - global, so rotating a forged address cannot buy unlimited guesses.
 
+const GLOBAL_KEY = '*';
 const loginFailures = new Map();
 
+// X-Forwarded-For is a list each proxy appends to. Only the LAST entry was
+// written by our own reverse proxy; everything before it is client-supplied
+// and must not be trusted.
 function clientAddress(req) {
 	const forwarded = req.headers['x-forwarded-for'];
-	if (forwarded) return forwarded.split(',')[0].trim();
+	if (forwarded) return forwarded.split(',').pop().trim();
 	return req.socket.remoteAddress || 'unknown';
 }
 
-function isThrottled(address) {
-	const entry = loginFailures.get(address);
-	if (!entry) return false;
+function failureCount(key) {
+	const entry = loginFailures.get(key);
+	if (!entry) return 0;
 	if (entry.resetAt < Date.now()) {
-		loginFailures.delete(address);
-		return false;
+		loginFailures.delete(key);
+		return 0;
 	}
-	return entry.count >= LOGIN_MAX_FAILURES;
+	return entry.count;
+}
+
+function isThrottled(address) {
+	return (
+		failureCount(address) >= LOGIN_MAX_FAILURES ||
+		failureCount(GLOBAL_KEY) >= LOGIN_MAX_FAILURES_GLOBAL
+	);
 }
 
 function recordFailure(address) {
-	const entry = loginFailures.get(address) || { count: 0, resetAt: Date.now() + LOGIN_WINDOW_MS };
-	entry.count++;
-	loginFailures.set(address, entry);
+	[address, GLOBAL_KEY].forEach((key) => {
+		const count = failureCount(key); // also drops an expired entry
+		const entry = loginFailures.get(key) || { count, resetAt: Date.now() + LOGIN_WINDOW_MS };
+		entry.count++;
+		loginFailures.set(key, entry);
+	});
 }
 
 // ── HTTP helpers ─────────────────────────────────────────────────────────────
