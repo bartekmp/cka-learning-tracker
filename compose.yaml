@@ -1,0 +1,20 @@
+# Server-backed variant: the site plus login and cross-device sync.
+#   1. cp .env.example .env   and set your credentials
+#   2. docker compose up -d --build
+# Then point your HTTPS reverse proxy at 127.0.0.1:8080.
+
+services:
+    cka-tracker:
+        build: .
+        restart: unless-stopped
+        environment:
+            CKA_USER: ${CKA_USER:?Set CKA_USER in .env}
+            CKA_PASSWORD: ${CKA_PASSWORD:?Set CKA_PASSWORD in .env}
+        ports:
+            # Bound to localhost on purpose: the reverse proxy is the only way in.
+            - '127.0.0.1:${CKA_PORT:-8080}:8080'
+        volumes:
+            - cka-data:/data
+
+volumes:
+    cka-data:

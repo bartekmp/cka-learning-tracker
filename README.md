@@ -20,8 +20,54 @@ It includes:
 - `robots.txt`: crawler policy (allow all).
 - `dist/`: generated static output ready for GitHub Pages.
 - `build.mjs`: build script that copies assets and bundles the React tracker.
+- `server/`, `Dockerfile`, `compose.yaml`: the optional server-backed variant (see below).
 - `.editorconfig`: enforces tab indentation (4-wide) and LF line endings across editors.
 - `SECURITY.md`: security policy and vulnerability reporting guidance.
+
+## Choose a deployment
+
+Pick one before you deploy. The static site is the official version; the server-backed one is an optional extra for self-hosting.
+
+|             | Static (official)                  | Server-backed (optional)                   |
+| ----------- | ---------------------------------- | ------------------------------------------ |
+| You get     | The whole app, progress in browser | The same, plus login and cross-device sync |
+| You need    | Any web server                     | Docker, and an HTTPS reverse proxy         |
+| Deploy with | `npm run build`, then copy `dist/` | `docker compose up -d --build`             |
+| Network use | None — no requests are made        | Only to your own server                    |
+
+### Static
+
+```bash
+npm install
+npm run build
+cp -r dist/. /var/www/your-site/
+```
+
+That is all. Nothing else to configure.
+
+### Server-backed
+
+1. Copy the example config and set your credentials:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+2. Start it:
+
+    ```bash
+    docker compose up -d --build
+    ```
+
+3. Point your HTTPS reverse proxy at `127.0.0.1:8080`.
+
+Things to know:
+
+- **One account.** `CKA_USER` / `CKA_PASSWORD` in `.env` are the only login. There is no registration and no email.
+- **HTTPS is your proxy's job.** The app speaks plain HTTP on localhost. The proxy must send `X-Forwarded-Proto` and `X-Forwarded-For`.
+- **Signing in is optional.** Signed out, the app behaves exactly like the static site.
+- **Data** lives in the `cka-data` volume as one JSON file. Back it up by copying that volume.
+- **Without Docker:** Node 22+ is the only requirement. Run `npm ci && npm run build:server`, then `CKA_USER=… CKA_PASSWORD=… npm run serve`.
 
 ## Local Usage
 
