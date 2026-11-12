@@ -922,3 +922,75 @@ html.dark .streak-week-label.met {
 	color: #16a34a;
 	font-weight: 600;
 }
+
+/* Activity heatmap — second row of the streak widget */
+.heatmap {
+	flex-basis: 100%;
+	display: flex;
+	align-items: flex-end;
+	gap: 10px;
+	padding-top: 8px;
+	border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+html.dark .heatmap {
+	border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.heatmap-grid {
+	display: flex;
+	gap: 3px;
+}
+
+.heatmap-week {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.heat-cell {
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+}
+
+.heat-cell.future {
+	background: transparent;
+}
+
+.heat-cell.level-0 {
+	background: #ecece8;
+}
+
+html.dark .heat-cell.level-0 {
+	background: #33332f;
+}
+
+.heat-cell.level-1 {
+	background: #bbf7d0;
+}
+
+html.dark .heat-cell.level-1 {
+	background: #14532d;
+}
+
+.heat-cell.level-2 {
+	background: #4ade80;
+}
+
+html.dark .heat-cell.level-2 {
+	background: #16a34a;
+}
+
+.heat-cell.level-3 {
+	background: #15803d;
+}
+
+html.dark .heat-cell.level-3 {
+	background: #4ade80;
+}
+
+.heatmap-caption {
+	font-size: 11px;
+	color: #888780;
+}

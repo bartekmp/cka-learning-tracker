@@ -7,6 +7,7 @@
 
 const WEEK_GOAL = 4;
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const HEATMAP_WEEKS = 12;
 
 function streakAddDays(date, days) {
 	const copy = new Date(date);
@@ -47,6 +48,48 @@ function streakEl(tag, className, text) {
 	el.className = className;
 	if (text) el.textContent = text;
 	return el;
+}
+
+// 0 = nothing, 3 = a big day. Buckets, because raw counts vary too much to
+// read as colour.
+function heatLevel(count) {
+	if (!count) return 0;
+	if (count === 1) return 1;
+	if (count <= 3) return 2;
+	return 3;
+}
+
+// One column per week (oldest first), one cell per day, Monday on top.
+function buildHeatmap(activity, today) {
+	const todayKey = activityDayKey(today);
+	const firstWeek = streakAddDays(streakWeekStart(today), -7 * (HEATMAP_WEEKS - 1));
+	const grid = streakEl('div', 'heatmap-grid');
+	let studyDays = 0;
+
+	for (let w = 0; w < HEATMAP_WEEKS; w++) {
+		const column = streakEl('div', 'heatmap-week');
+		for (let d = 0; d < 7; d++) {
+			const date = streakAddDays(firstWeek, w * 7 + d);
+			const key = activityDayKey(date);
+			const count = activity[key] || 0;
+			const cell = streakEl('span', 'heat-cell');
+			if (key > todayKey) {
+				cell.classList.add('future');
+			} else {
+				cell.classList.add('level-' + heatLevel(count));
+				cell.title = `${date.toLocaleDateString()} — ${count} done`;
+				if (count > 0) studyDays++;
+			}
+			column.appendChild(cell);
+		}
+		grid.appendChild(column);
+	}
+
+	const wrap = streakEl('div', 'heatmap');
+	wrap.appendChild(grid);
+	const caption = `Last ${HEATMAP_WEEKS} weeks · ${studyDays} study day${studyDays === 1 ? '' : 's'}`;
+	wrap.appendChild(streakEl('span', 'heatmap-caption', caption));
+	return wrap;
 }
 
 function renderStreak() {
@@ -90,6 +133,8 @@ function renderStreak() {
 		: `${activeDays} / ${WEEK_GOAL} days this week`;
 	week.appendChild(streakEl('span', 'streak-week-label' + (goalMet ? ' met' : ''), weekLabel));
 	root.appendChild(week);
+
+	root.appendChild(buildHeatmap(activity, today));
 }
 
 renderStreak();
