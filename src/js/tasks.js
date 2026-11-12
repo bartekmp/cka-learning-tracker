@@ -467,6 +467,37 @@ function buildPanels() {
 			card.insertBefore(review, actions);
 			card.classList.toggle('review-due', reviewIsDue(task.id));
 
+			// Long solutions open one step at a time, so there is no wall of
+			// commands to face. Revealing the last step shows the rest.
+			const stepEls = sol.querySelectorAll('.sol-step');
+			if (stepEls.length > 1) {
+				let shown = 1;
+				sol.classList.add('stepping');
+				stepEls.forEach((el, i) => el.classList.toggle('later', i > 0));
+
+				const more = document.createElement('div');
+				more.className = 'sol-more';
+				const nextBtn = document.createElement('button');
+				nextBtn.type = 'button';
+				nextBtn.className = 'sol-next';
+				const allBtn = document.createElement('button');
+				allBtn.type = 'button';
+				allBtn.className = 'sol-all';
+				allBtn.textContent = 'Show all';
+				more.append(nextBtn, allBtn);
+				sol.appendChild(more);
+
+				const revealUpTo = (count) => {
+					shown = count;
+					stepEls.forEach((el, i) => el.classList.toggle('later', i >= shown));
+					if (shown >= stepEls.length) sol.classList.remove('stepping');
+					nextBtn.textContent = `Next step (${shown + 1}/${stepEls.length}) ▸`;
+				};
+				nextBtn.onclick = () => revealUpTo(shown + 1);
+				allBtn.onclick = () => revealUpTo(stepEls.length);
+				revealUpTo(1);
+			}
+
 			card.appendChild(sol);
 
 			toggle.addEventListener('click', () => {
