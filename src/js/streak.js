@@ -113,10 +113,7 @@ function renderStreak() {
 			: `🌱 Study ${WEEK_GOAL} days this week to start a streak`;
 	root.appendChild(streakEl('div', 'streak-headline', headline));
 
-	const todayText =
-		todayCount > 0
-			? `✓ Today: ${todayCount} done`
-			: 'Today: tick off 1 thing — that is the goal';
+	const todayText = todayCount > 0 ? `✓ Today: ${todayCount} done` : 'Today: tick off 1 thing';
 	root.appendChild(streakEl('div', 'streak-today', todayText));
 
 	const week = streakEl('div', 'streak-week');
