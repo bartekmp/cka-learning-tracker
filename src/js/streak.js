@@ -8,6 +8,7 @@
 const WEEK_GOAL = 4;
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const HEATMAP_WEEKS = 12;
+const STREAK_UI_KEY = 'cka-streak-ui';
 
 function streakAddDays(date, days) {
 	const copy = new Date(date);
@@ -92,6 +93,23 @@ function buildHeatmap(activity, today) {
 	return wrap;
 }
 
+function heatmapHidden() {
+	try {
+		return localStorage.getItem(STREAK_UI_KEY) === 'heatmap-hidden';
+	} catch {
+		return false;
+	}
+}
+
+function toggleHeatmap() {
+	try {
+		localStorage.setItem(STREAK_UI_KEY, heatmapHidden() ? '' : 'heatmap-hidden');
+	} catch {
+		/* storage unavailable — the toggle just will not stick */
+	}
+	renderStreak();
+}
+
 function renderStreak() {
 	const root = document.getElementById('streak-widget');
 	if (!root) return;
@@ -131,7 +149,17 @@ function renderStreak() {
 	week.appendChild(streakEl('span', 'streak-week-label' + (goalMet ? ' met' : ''), weekLabel));
 	root.appendChild(week);
 
-	root.appendChild(buildHeatmap(activity, today));
+	const hidden = heatmapHidden();
+	const toggle = streakEl('button', 'streak-toggle', hidden ? '▸' : '▾');
+	toggle.type = 'button';
+	toggle.title = hidden ? 'Show activity heatmap' : 'Hide activity heatmap';
+	toggle.setAttribute('aria-label', toggle.title);
+	toggle.setAttribute('aria-expanded', String(!hidden));
+	toggle.onclick = toggleHeatmap;
+	// Inside the week row, so it stays at the right edge instead of wrapping.
+	week.appendChild(toggle);
+
+	if (!hidden) root.appendChild(buildHeatmap(activity, today));
 }
 
 renderStreak();

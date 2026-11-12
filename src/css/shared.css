@@ -994,3 +994,22 @@ html.dark .heat-cell.level-3 {
 	font-size: 11px;
 	color: #888780;
 }
+
+.streak-toggle {
+	border: 0;
+	background: none;
+	cursor: pointer;
+	font-size: 13px;
+	line-height: 1;
+	padding: 4px 6px;
+	border-radius: 6px;
+	color: #888780;
+}
+
+.streak-toggle:hover {
+	background: rgba(0, 0, 0, 0.06);
+}
+
+html.dark .streak-toggle:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
