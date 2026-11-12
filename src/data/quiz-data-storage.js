@@ -31,7 +31,7 @@ spec:
 		'sto-pod-mount',
 		'storage',
 		'This pod fails to start. Why?',
-		'volumeMounts.name does not match any volumes.name',
+		'`volumeMounts.name` does not match any `volumes.name`',
 		[
 			'mountPath must start with /data',
 			'A PVC cannot be used in a pod',
@@ -59,7 +59,7 @@ containers:
 			'No default StorageClass exists',
 			'The class uses WaitForFirstConsumer and no pod uses the PVC yet',
 		],
-		'kubectl describe pvc shows the reason in Events.'
+		'`kubectl describe pvc` shows the reason in Events.'
 	),
 	quizQ(
 		'sto-pv-phases',
@@ -88,7 +88,7 @@ containers:
 	quizQ(
 		'sto-empty-class',
 		'storage',
-		'What does storageClassName: "" (empty string) on a PVC mean?',
+		'What does `storageClassName: ""` (empty string) on a PVC mean?',
 		'Do not use dynamic provisioning; bind only to a PV with no class',
 		['Use the default StorageClass', 'Use any StorageClass', 'The PVC is invalid'],
 		'Leaving the field out is different: it selects the default class.'
@@ -124,7 +124,7 @@ containers:
 	quizQ(
 		'sto-emptydir-memory',
 		'storage',
-		'What does emptyDir with medium: Memory do?',
+		'What does `emptyDir` with `medium: Memory` do?',
 		'Backs the volume with RAM (tmpfs)',
 		['Stores data in etcd', 'Keeps data after the pod dies', 'Shares data between nodes'],
 		'It counts against the container memory limit.',

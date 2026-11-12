@@ -19,7 +19,7 @@ QUIZ.push(
 		'In this Service, which number must match the port the container listens on?',
 		'targetPort: 8080',
 		['port: 80', 'nodePort: 30080', 'None of them'],
-		'port is what clients use on the Service IP. nodePort is exposed on every node.',
+		'`port` is what clients use on the Service IP. nodePort is exposed on every node.',
 		`spec:
   type: NodePort
   selector:
@@ -67,7 +67,7 @@ QUIZ.push(
 			'kubectl describe pods --service <svc>',
 			'kubectl top svc <svc>',
 		],
-		'kubectl describe svc shows them too. EndpointSlices are the newer API.'
+		'`kubectl describe svc` shows them too. EndpointSlices are the newer API.'
 	),
 	quizQ(
 		'net-selector-svc',
@@ -88,7 +88,7 @@ QUIZ.push(
 	quizQ(
 		'net-external-policy',
 		'network',
-		'What does externalTrafficPolicy: Local do on a NodePort Service?',
+		'What does `externalTrafficPolicy: Local` do on a NodePort Service?',
 		'Keeps the client source IP and only uses pods on the node that received the traffic',
 		['Blocks external traffic', 'Spreads traffic over all nodes evenly', 'Enables TLS'],
 		'The trade-off is uneven load, and nodes with no pod drop the traffic.'
@@ -103,7 +103,7 @@ QUIZ.push(
 			'kubectl expose pod web 8080:80 --local',
 			'kubectl forward web 8080 80',
 		],
-		'The format is <local>:<remote>. Handy for a quick look without a Service.'
+		'The format is `<local>:<remote>`. Handy for a quick look without a Service.'
 	),
 	quizQ(
 		'net-session-affinity',
@@ -129,7 +129,7 @@ QUIZ.push(
 		'From namespace "dev", which name reaches Service "api" in namespace "prod"?',
 		'api.prod',
 		['api', 'prod.api', 'api.dev'],
-		'<service>.<namespace>.'
+		'`<service>.<namespace>`.'
 	),
 	quizQ(
 		'net-coredns-config',
@@ -137,7 +137,7 @@ QUIZ.push(
 		'Where is the CoreDNS configuration (Corefile) stored?',
 		'In the coredns ConfigMap in kube-system',
 		['In /etc/coredns on each node', 'In the kube-dns Service', 'In a Secret in default'],
-		'Edit it with kubectl -n kube-system edit configmap coredns.'
+		'Edit it with `kubectl -n kube-system edit configmap coredns`.'
 	),
 	quizQ(
 		'net-dns-policy',
@@ -161,7 +161,7 @@ QUIZ.push(
 		'Service ClusterIPs are taken from which range?',
 		'The service CIDR set on the API server (--service-cluster-ip-range)',
 		['The pod CIDR', 'The node network', 'The CNI plugin’s overlay range'],
-		'kubeadm sets it with --service-cidr.'
+		'kubeadm sets it with `--service-cidr`.'
 	),
 
 	// ── NetworkPolicy ──
@@ -271,7 +271,7 @@ spec:
 		'In this Ingress, where does a request for example.com/shop go?',
 		'To Service shop on port 80',
 		['To Service example', 'To a Service named /shop', 'To the default backend'],
-		'pathType Prefix matches /shop and anything below it.',
+		'`pathType: Prefix` matches /shop and anything below it.',
 		`spec:
   ingressClassName: nginx
   rules:
@@ -304,7 +304,7 @@ spec:
 			'kubectl create tls web-tls tls.crt tls.key',
 			'kubectl create certificate web-tls --cert=tls.crt',
 		],
-		'Reference it under spec.tls[].secretName.'
+		'Reference it under `spec.tls[].secretName`.'
 	),
 	quizQ(
 		'net-ingress-vs-svc',
@@ -351,7 +351,7 @@ spec:
 	quizQ(
 		'net-host-network',
 		'network',
-		'What does hostNetwork: true do for a pod?',
+		'What does `hostNetwork: true` do for a pod?',
 		'The pod uses the node’s network namespace and IP',
 		[
 			'It gets a dedicated NIC',

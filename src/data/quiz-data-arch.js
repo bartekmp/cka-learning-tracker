@@ -93,7 +93,7 @@ QUIZ.push(
 		'Where do the cluster certificates and keys live on a kubeadm control plane node?',
 		'/etc/kubernetes/pki',
 		['/etc/kubernetes/manifests', '/var/lib/etcd', '/etc/ssl/kubernetes'],
-		'It includes ca.crt, apiserver.crt and the etcd/ subdirectory.'
+		'It includes ca.crt, apiserver.crt and the `etcd/` subdirectory.'
 	),
 	quizQ(
 		'arch-cert-expiry',
@@ -101,7 +101,7 @@ QUIZ.push(
 		'Which command shows when the kubeadm-managed certificates expire?',
 		'kubeadm certs check-expiration',
 		['kubectl get certificates', 'kubeadm token list', 'openssl list-certs'],
-		'Renew them with kubeadm certs renew all, then restart the control plane static pods.'
+		'Renew them with `kubeadm certs renew all`, then restart the control plane static pods.'
 	),
 	quizQ(
 		'arch-kubelet-config',
@@ -113,7 +113,7 @@ QUIZ.push(
 			'/etc/kubelet/config.json',
 			'/etc/kubernetes/manifests/kubelet.yaml',
 		],
-		'After editing it, run systemctl restart kubelet.'
+		'After editing it, run `systemctl restart kubelet`.'
 	),
 	quizQ(
 		'arch-taint-cp',
@@ -133,7 +133,7 @@ QUIZ.push(
 		'By default the kubelet refuses to start if which setting is on?',
 		'Swap',
 		['IPv6', 'SELinux in permissive mode', 'A second network interface'],
-		'Disable it with swapoff -a and remove the swap line from /etc/fstab.'
+		'Disable it with `swapoff -a` and remove the swap line from `/etc/fstab`.'
 	),
 	quizQ(
 		'arch-sysctl',
@@ -141,7 +141,7 @@ QUIZ.push(
 		'Which sysctl must be 1 on a node so pod traffic can be routed?',
 		'net.ipv4.ip_forward',
 		['vm.swappiness', 'kernel.panic', 'fs.file-max'],
-		'kubeadm preflight checks fail without it. br_netfilter is the related kernel module.'
+		'kubeadm preflight checks fail without it. `br_netfilter` is the related kernel module.'
 	),
 	quizQ(
 		'arch-systemd-cgroup',
@@ -164,10 +164,10 @@ QUIZ.push(
 	quizQ(
 		'arch-upgrade-plan',
 		'arch',
-		'What does kubeadm upgrade plan do?',
+		'What does `kubeadm upgrade plan` do?',
 		'Shows which versions you can upgrade to and what will change',
 		['Upgrades the control plane', 'Drains the node', 'Rolls back the last upgrade'],
-		'It changes nothing. kubeadm upgrade apply does the work.'
+		'It changes nothing. `kubeadm upgrade apply` does the work.'
 	),
 	quizQ(
 		'arch-upgrade-node',
@@ -175,7 +175,7 @@ QUIZ.push(
 		'Which command upgrades the local kubelet configuration on a WORKER node?',
 		'kubeadm upgrade node',
 		['kubeadm upgrade apply', 'kubeadm join --upgrade', 'kubectl upgrade node'],
-		'apply is for the first control plane node only. Other nodes use kubeadm upgrade node.'
+		'`apply` is for the first control plane node only. Other nodes use `kubeadm upgrade node`.'
 	),
 	quizQ(
 		'arch-drain-before',
@@ -187,7 +187,7 @@ QUIZ.push(
 			'kubectl delete node <node>',
 			'kubectl taint node <node> drain=true',
 		],
-		'drain cordons and evicts. DaemonSet pods cannot be evicted, hence the flag. Run uncordon afterwards.'
+		'`drain` cordons and evicts. DaemonSet pods cannot be evicted, hence the flag. Run `uncordon` afterwards.'
 	),
 	quizQ(
 		'arch-uncordon',
@@ -199,7 +199,7 @@ QUIZ.push(
 			'kubectl taint nodes <node> -',
 			'systemctl restart kubelet',
 		],
-		'drain marked the node unschedulable. uncordon lifts that.'
+		'`drain` marked the node unschedulable. `uncordon` lifts that.'
 	),
 	quizQ(
 		'arch-skew',
@@ -239,7 +239,7 @@ QUIZ.push(
 		'Which command inspects a snapshot file (hash, revision, size)?',
 		'etcdutl snapshot status <file>',
 		['etcdctl snapshot read <file>', 'etcdctl member list', 'kubectl get snapshot'],
-		'Older etcd releases use etcdctl snapshot status for the same job.'
+		'Older etcd releases use `etcdctl snapshot status` for the same job.'
 	),
 	quizQ(
 		'arch-etcd-health',
@@ -261,7 +261,7 @@ QUIZ.push(
 			'kubectl create clusterrole pod-reader --verb=get,list --resource=pods -n dev',
 			'kubectl grant pods get,list',
 		],
-		'Add -n <namespace> to place it. A ClusterRole is a different object.'
+		'Add `-n <namespace>` to place it. A ClusterRole is a different object.'
 	),
 	quizQ(
 		'arch-create-rolebinding',
@@ -285,7 +285,7 @@ QUIZ.push(
 			'kubectl describe user jane',
 			'kubectl rbac check jane list pods',
 		],
-		'--as impersonates the user. Add -n <ns> for a namespace.'
+		'`--as` impersonates the user. Add `-n <ns>` for a namespace.'
 	),
 	quizQ(
 		'arch-clusterrole-rolebinding',
@@ -298,10 +298,10 @@ QUIZ.push(
 	quizQ(
 		'arch-api-group-core',
 		'arch',
-		'In a Role rule, what does apiGroups: [""] refer to?',
+		'In a Role rule, what does `apiGroups: [""]` refer to?',
 		'The core API group (pods, services, configmaps…)',
 		['All API groups', 'No API group', 'Only custom resources'],
-		'Deployments are in the "apps" group, so they need apiGroups: ["apps"].',
+		'Deployments are in the "apps" group, so they need `apiGroups: ["apps"]`.',
 		`rules:
   - apiGroups: [""]
     resources: ["pods"]
@@ -329,7 +329,7 @@ QUIZ.push(
 			'kubectl patch csr jane-csr --approve',
 			'kubectl apply csr jane-csr',
 		],
-		'Afterwards read the issued certificate from .status.certificate.'
+		'Afterwards read the issued certificate from `.status.certificate`.'
 	),
 	quizQ(
 		'arch-use-context',
@@ -337,7 +337,7 @@ QUIZ.push(
 		'Which command switches kubectl to another cluster context?',
 		'kubectl config use-context <name>',
 		['kubectl config set-cluster <name>', 'kubectl switch <name>', 'kubectl context <name>'],
-		'kubectl config get-contexts lists them.'
+		'`kubectl config get-contexts` lists them.'
 	),
 	quizQ(
 		'arch-kubeconfig-env',
@@ -355,7 +355,7 @@ QUIZ.push(
 		'Which command registers a chart repository in Helm?',
 		'helm repo add <name> <url>',
 		['helm add repo <name> <url>', 'helm install repo <name> <url>', 'helm repo create <url>'],
-		'Follow with helm repo update to fetch the index.'
+		'Follow with `helm repo update` to fetch the index.'
 	),
 	quizQ(
 		'arch-helm-upgrade',
@@ -375,7 +375,7 @@ QUIZ.push(
 		'Which command returns Helm release "web" to its first revision?',
 		'helm rollback web 1',
 		['helm undo web 1', 'helm revert web --to 1', 'helm install web --revision 1'],
-		'helm history web lists the revisions.'
+		'`helm history web` lists the revisions.'
 	),
 	quizQ(
 		'arch-helm-template',
@@ -383,7 +383,7 @@ QUIZ.push(
 		'Which command renders a chart to YAML without installing anything?',
 		'helm template <release> <chart>',
 		['helm dry <chart>', 'helm show manifests <chart>', 'helm lint <chart>'],
-		'Great for reviewing what would be applied. helm lint only checks the chart.'
+		'Great for reviewing what would be applied. `helm lint` only checks the chart.'
 	),
 	quizQ(
 		'arch-helm-values',
@@ -391,7 +391,7 @@ QUIZ.push(
 		'Which flags override chart values at install time?',
 		'--set key=value and -f values.yaml',
 		['--env key=value and --config file', '--override and --patch', '--values-from and --var'],
-		'helm show values <chart> lists the defaults you can override.'
+		'`helm show values <chart>` lists the defaults you can override.'
 	),
 	quizQ(
 		'arch-helm-list',
@@ -407,7 +407,7 @@ QUIZ.push(
 		'Which command removes a Helm release?',
 		'helm uninstall <release>',
 		['helm delete --chart <chart>', 'helm remove <chart>', 'kubectl delete release <release>'],
-		'The older spelling helm delete is an alias.'
+		'The older spelling `helm delete` is an alias.'
 	),
 	quizQ(
 		'arch-kustomize-file',
@@ -429,7 +429,7 @@ images:
 		'Which command prints the Kustomize result without applying it?',
 		'kubectl kustomize ./dir',
 		['kubectl apply -k ./dir --print', 'kubectl build ./dir', 'kubectl get -k ./dir'],
-		'Pipe it to kubectl apply -f - if it looks right.'
+		'Pipe it to `kubectl apply -f -` if it looks right.'
 	),
 	quizQ(
 		'arch-crd-apiversion',

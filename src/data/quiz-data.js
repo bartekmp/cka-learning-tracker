@@ -45,7 +45,7 @@ const QUIZ = [
 			'kubeadm token create --print-join-command',
 		],
 		answer: 3,
-		why: 'It creates a new bootstrap token and prints the full kubeadm join line, with the CA hash.',
+		why: 'It creates a new bootstrap token and prints the full `kubeadm join` line, with the CA hash.',
 	},
 	{
 		id: 'arch-etcd-backup',
@@ -67,11 +67,11 @@ const QUIZ = [
 		options: [
 			'kubeadm upgrade apply',
 			'Upgrade the kubeadm package',
-			'Upgrade kubelet and kubectl',
+			'Upgrade `kubelet` and `kubectl`',
 			'Restart the container runtime',
 		],
 		answer: 1,
-		why: 'Upgrade kubeadm, then run kubeadm upgrade apply, then upgrade kubelet and kubectl.',
+		why: 'Upgrade kubeadm, then run `kubeadm upgrade apply`, then upgrade kubelet and kubectl.',
 	},
 	{
 		id: 'arch-crd',
@@ -105,7 +105,7 @@ const QUIZ = [
 			'helm create myrel repo/chart',
 		],
 		answer: 2,
-		why: 'helm install <release-name> <chart>. helm create only scaffolds a new chart.',
+		why: '`helm install <release-name> <chart>`. `helm create` only scaffolds a new chart.',
 	},
 	{
 		id: 'arch-kustomize',
@@ -133,7 +133,7 @@ const QUIZ = [
 			'kubectl scale deployment/web --undo',
 		],
 		answer: 0,
-		why: 'Add --to-revision=N to pick a specific one. kubectl rollout history lists them.',
+		why: 'Add --to-revision=N to pick a specific one. `kubectl rollout history` lists them.',
 	},
 	{
 		id: 'work-daemonset',
@@ -194,7 +194,7 @@ const QUIZ = [
 		q: 'What does a PodDisruptionBudget limit?',
 		options: [
 			'CPU use of a pod',
-			'Voluntary disruptions, such as kubectl drain',
+			'Voluntary disruptions, such as `kubectl drain`',
 			'Crashes caused by OOM kills',
 			'Pods per namespace',
 		],
@@ -243,7 +243,7 @@ const QUIZ = [
 	{
 		id: 'net-empty-selector',
 		domain: 'network',
-		q: 'What does podSelector: {} select in a NetworkPolicy?',
+		q: 'What does `podSelector: {}` select in a NetworkPolicy?',
 		options: [
 			'No pods',
 			'Every pod in the namespace',
@@ -277,7 +277,7 @@ const QUIZ = [
 			'web.shop.svc.cluster.local',
 		],
 		answer: 3,
-		why: '<service>.<namespace>.svc.<cluster-domain>',
+		why: '`<service>.<namespace>.svc.<cluster-domain>`',
 	},
 	{
 		id: 'net-httproute',
@@ -332,7 +332,7 @@ const QUIZ = [
 			'publishNotReadyAddresses: false',
 		],
 		answer: 1,
-		why: 'With clusterIP: None, DNS returns the pod IPs directly. StatefulSets use this.',
+		why: 'With `clusterIP: None`, DNS returns the pod IPs directly. StatefulSets use this.',
 	},
 
 	// ── Storage ────────────────────────────────────────────────────────────────
@@ -368,7 +368,7 @@ const QUIZ = [
 	{
 		id: 'sto-wffc',
 		domain: 'storage',
-		q: 'What does volumeBindingMode: WaitForFirstConsumer do?',
+		q: 'What does `volumeBindingMode: WaitForFirstConsumer` do?',
 		options: [
 			'Binds the PVC as soon as it is created',
 			'Delays binding until a pod using the PVC is scheduled',
@@ -436,7 +436,7 @@ const QUIZ = [
 		q: 'How do you mark a StorageClass as the default?',
 		options: [
 			'spec.default: true',
-			'The annotation storageclass.kubernetes.io/is-default-class: "true"',
+			'The annotation `storageclass.kubernetes.io/is-default-class: "true"`',
 			'Name it "default"',
 			'kubectl label sc default=true',
 		],
@@ -482,7 +482,7 @@ const QUIZ = [
 			'Create a PVC',
 		],
 		answer: 0,
-		why: 'Or remove the taint from a node. kubectl describe pod shows this message under Events.',
+		why: 'Or remove the taint from a node. `kubectl describe pod` shows this message under Events.',
 	},
 	{
 		id: 'tro-imagepull',
@@ -495,7 +495,7 @@ const QUIZ = [
 			'A missing NetworkPolicy',
 		],
 		answer: 1,
-		why: 'Check the exact message in kubectl describe pod. For private registries use imagePullSecrets.',
+		why: 'Check the exact message in `kubectl describe pod`. For private registries use imagePullSecrets.',
 	},
 	{
 		id: 'tro-notready',
@@ -504,7 +504,7 @@ const QUIZ = [
 		options: [
 			'kubectl logs on the node',
 			'/var/log/pods only',
-			'The kubelet: systemctl status kubelet and journalctl -u kubelet',
+			'The kubelet: `systemctl status kubelet` and `journalctl -u kubelet`',
 			'etcdctl member list',
 		],
 		answer: 2,
@@ -534,15 +534,15 @@ const QUIZ = [
 			'The ingress controller logs',
 		],
 		answer: 2,
-		why: 'kubectl get endpoints <svc> shows it. A typo in the selector is the classic cause.',
+		why: '`kubectl get endpoints <svc>` shows it. A typo in the selector is the classic cause.',
 	},
 	{
 		id: 'tro-top',
 		domain: 'trouble',
-		q: 'kubectl top pods fails with "Metrics API not available". What is missing?',
+		q: '`kubectl top pods` fails with "Metrics API not available". What is missing?',
 		options: ['CoreDNS', 'metrics-server', 'kube-proxy', 'An ingress controller'],
 		answer: 1,
-		why: 'kubectl top reads the metrics API, which metrics-server serves.',
+		why: '`kubectl top` reads the metrics API, which metrics-server serves.',
 	},
 	{
 		id: 'tro-cp-down',
@@ -550,7 +550,7 @@ const QUIZ = [
 		q: 'kubectl cannot reach the API server. Which tool still shows the control plane containers?',
 		options: ['kubectl get pods -A', 'crictl ps', 'helm list', 'kubectl debug'],
 		answer: 1,
-		why: 'crictl talks to the container runtime directly, so it works without the API server.',
+		why: '`crictl` talks to the container runtime directly, so it works without the API server.',
 	},
 	{
 		id: 'tro-debug',
@@ -568,7 +568,7 @@ const QUIZ = [
 	{
 		id: 'tro-oom',
 		domain: 'trouble',
-		q: 'kubectl describe shows "Last State: Terminated, Reason: OOMKilled". What happened?',
+		q: '`kubectl describe` shows "Last State: Terminated, Reason: OOMKilled". What happened?',
 		options: [
 			'The node ran out of disk',
 			'The image pull timed out',

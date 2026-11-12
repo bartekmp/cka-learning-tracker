@@ -11,7 +11,7 @@ QUIZ.push(
 			'kubectl create pod web --image=nginx --count=3',
 			'kubectl deploy web --image=nginx -r 3',
 		],
-		'kubectl run creates a single pod, and has no --replicas flag today.'
+		'`kubectl run` creates a single pod, and has no `--replicas` flag today.'
 	),
 	quizQ(
 		'work-scale',
@@ -35,7 +35,7 @@ QUIZ.push(
 			'kubectl set deployment/web image=nginx:1.27',
 			'kubectl apply image nginx:1.27',
 		],
-		'The format is <container-name>=<image>. It triggers a rolling update.'
+		'The format is `<container-name>=<image>`. It triggers a rolling update.'
 	),
 	quizQ(
 		'work-rollout-status',
@@ -159,7 +159,7 @@ spec:
 			'kubectl apply pod web nginx',
 			'kubectl new pod web --image=nginx',
 		],
-		'There is no kubectl create pod.'
+		'There is no `kubectl create pod`.'
 	),
 	quizQ(
 		'work-dry-run',
@@ -175,7 +175,7 @@ spec:
 		'In a container spec, `command` overrides which Dockerfile instruction?',
 		'ENTRYPOINT',
 		['CMD', 'RUN', 'EXPOSE'],
-		'`args` overrides CMD.',
+		'`args` overrides `CMD`.',
 		`containers:
   - name: app
     image: busybox
@@ -257,7 +257,7 @@ spec:
 		'How does a container read one key from a Secret into an environment variable?',
 		'env.valueFrom.secretKeyRef',
 		['envFrom.configMapRef', 'volumes.secretKey', 'env.secretValue'],
-		'envFrom.secretRef would import all keys.',
+		'`envFrom.secretRef` would import all keys.',
 		`env:
   - name: DB_PASSWORD
     valueFrom:
@@ -342,7 +342,7 @@ spec:
 	quizQ(
 		'work-cron-schedule',
 		'workloads',
-		'What does the schedule "*/5 * * * *" mean?',
+		'What does the schedule `*/5 * * * *` mean?',
 		'Every 5 minutes',
 		['At minute 5 of every hour', 'Every 5 hours', 'At 5 AM every day'],
 		'Fields: minute, hour, day of month, month, day of week.'
@@ -351,8 +351,8 @@ spec:
 		'work-cron-daily',
 		'workloads',
 		'Which schedule runs a CronJob every day at 02:30?',
-		'30 2 * * *',
-		['2 30 * * *', '*/2 30 * * *', '30 2 1 * *'],
+		'`30 2 * * *`',
+		['`2 30 * * *`', '`*/2 30 * * *`', '`30 2 1 * *`'],
 		'Minute first, then hour.'
 	),
 	quizQ(
@@ -395,7 +395,7 @@ spec:
 		'Which StatefulSet field names the headless Service that gives pods stable DNS names?',
 		'serviceName',
 		['headlessService', 'dnsName', 'serviceRef'],
-		'The pods become db-0.<serviceName>.<ns>.svc.'
+		'The pods become `db-0.<serviceName>.<ns>.svc`.'
 	),
 	quizQ(
 		'work-sts-vct',
@@ -471,7 +471,7 @@ spec:
 	quizQ(
 		'work-drain-flags',
 		'workloads',
-		'kubectl drain refuses to continue: pods use emptyDir volumes. Which flag lets it proceed?',
+		'`kubectl drain` refuses to continue: pods use `emptyDir` volumes. Which flag lets it proceed?',
 		'--delete-emptydir-data',
 		['--force-volumes', '--ignore-emptydir', '--skip-local'],
 		'The emptyDir data is lost when the pod is evicted.'
@@ -498,7 +498,7 @@ spec:
 			'Replicas avoid control plane nodes',
 			'Replicas spread across namespaces',
 		],
-		'topologyKey kubernetes.io/hostname makes each node its own domain.',
+		'`topologyKey: kubernetes.io/hostname` makes each node its own domain.',
 		`affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -582,7 +582,7 @@ spec:
 			'kubectl create hpa web --range=2-10',
 			'kubectl set autoscale deployment web 2 10',
 		],
-		'Add a CPU target flag as well; check kubectl autoscale --help for the exact spelling.'
+		'Add a CPU target flag as well; check `kubectl autoscale --help` for the exact spelling.'
 	),
 
 	// ── Basics ──
@@ -620,7 +620,7 @@ spec:
 			'kubectl config use-namespace dev',
 			'kubectl namespace dev --default',
 		],
-		'It saves you typing -n dev on every command.'
+		'It saves you typing `-n dev` on every command.'
 	),
 	quizQ(
 		'work-create-ns',
@@ -628,7 +628,7 @@ spec:
 		'Which command creates a namespace?',
 		'kubectl create namespace dev',
 		['kubectl new namespace dev', 'kubectl run namespace dev', 'kubectl apply namespace dev'],
-		'kubectl create ns dev is the short form.'
+		'`kubectl create ns dev` is the short form.'
 	),
 	quizQ(
 		'work-explain',

@@ -62,6 +62,61 @@ function quizEl(tag, className, text) {
 	return el;
 }
 
+// ── Code formatting ──────────────────────────────────────────────────────────
+// Text may contain `backtick spans`. On top of that, obvious code is wrapped
+// automatically: CLI tool names, flags, paths, camelCase fields, dotted names,
+// key=value pairs and <placeholders>.
+const QUIZ_TOOLS =
+	'kubectl|kubeadm|helm|etcdctl|etcdutl|crictl|systemctl|journalctl|swapoff|nslookup';
+const AUTO_CODE = new RegExp(
+	[
+		'\\b(?:' + QUIZ_TOOLS + ')\\b',
+		'(?<![\\w-])--?[a-zA-Z][\\w-]*(?:=[^\\s,;)]+)?',
+		'(?<![\\w/.])~?/[\\w.-]+(?:/[\\w.-]+)*',
+		'\\b[a-z]+(?:[A-Z][a-z0-9]*)+\\b',
+		'\\b[a-z][\\w-]*(?:\\.[a-z][\\w-]*)+(?:/[\\w.-]+)*',
+		'[\\w.-]+=[\\w./:-]+',
+		'<[\\w-]+>',
+	].join('|'),
+	'g'
+);
+
+function quizRich(parent, text) {
+	text.split('`').forEach((part, i) => {
+		if (i % 2 === 1) {
+			parent.appendChild(quizEl('code', '', part));
+			return;
+		}
+		let last = 0;
+		for (const match of part.matchAll(AUTO_CODE)) {
+			// A sentence-ending dot or comma is not part of the code.
+			const code = match[0].replace(/[.,;:]+$/, '');
+			if (!code) continue;
+			parent.appendChild(document.createTextNode(part.slice(last, match.index)));
+			parent.appendChild(quizEl('code', '', code));
+			last = match.index + code.length;
+		}
+		parent.appendChild(document.createTextNode(part.slice(last)));
+	});
+}
+
+// An answer option that IS a command, flag, path, field or value is shown
+// entirely as code. Anything with its own `backticks` is left to quizRich.
+function quizIsCode(text) {
+	if (text.includes('`')) return false;
+	if (new RegExp('^(' + QUIZ_TOOLS + ')\\b').test(text)) return true;
+	if (/^(-|\/|~\/)/.test(text)) return true;
+	if (/^[A-Za-z][\w.-]*\s?[:=]\s?\S/.test(text)) return true;
+	if (/^[\d][\d.\-/:]*$/.test(text)) return true;
+	if (/^[A-Z][A-Z0-9_]{3,}$/.test(text) || /^(CMD|RUN)$/.test(text)) return true;
+	return /^\S+$/.test(text) && (/[./=_]/.test(text) || /^[a-z]+[A-Z]/.test(text));
+}
+
+function quizOptionText(parent, text) {
+	if (quizIsCode(text)) parent.appendChild(quizEl('code', '', text));
+	else quizRich(parent, text);
+}
+
 // ── Start screen ─────────────────────────────────────────────────────────────
 
 function renderStart() {
@@ -129,7 +184,9 @@ function renderQuestion() {
 	bar.appendChild(fill);
 	card.appendChild(bar);
 
-	card.appendChild(quizEl('div', 'quiz-question', item.question.q));
+	const questionEl = quizEl('div', 'quiz-question');
+	quizRich(questionEl, item.question.q);
+	card.appendChild(questionEl);
 	if (item.question.code) card.appendChild(quizEl('pre', 'quiz-code', item.question.code));
 
 	const list = quizEl('div', 'quiz-options');
@@ -137,7 +194,9 @@ function renderQuestion() {
 		const btn = quizEl('button', 'quiz-option');
 		btn.type = 'button';
 		btn.appendChild(quizEl('span', 'quiz-key', 'ABCD'[i]));
-		btn.appendChild(quizEl('span', '', option.text));
+		const label = quizEl('span', 'quiz-text');
+		quizOptionText(label, option.text);
+		btn.appendChild(label);
 		btn.onclick = () => answer(i);
 		list.appendChild(btn);
 	});
@@ -169,7 +228,7 @@ function answer(optionIndex) {
 	const feedback = document.querySelector('.quiz-feedback');
 	feedback.classList.add(chosen.correct ? 'ok' : 'bad');
 	feedback.appendChild(quizEl('strong', '', chosen.correct ? '✓ Correct. ' : '✗ Not quite. '));
-	feedback.appendChild(document.createTextNode(item.question.why));
+	quizRich(feedback, item.question.why);
 
 	const last = round.index === round.items.length - 1;
 	const next = quizEl('button', 'quiz-primary', last ? 'See result ▸' : 'Next ▸');
@@ -213,8 +272,11 @@ function renderResult() {
 		round.missed.forEach((item) => {
 			const correct = item.options.find((o) => o.correct);
 			const row = quizEl('div', 'quiz-missed-row');
-			row.appendChild(quizEl('div', 'quiz-missed-q', item.question.q));
-			row.appendChild(quizEl('div', 'quiz-missed-a', '→ ' + correct.text));
+			const questionRow = quizEl('div', 'quiz-missed-q');
+			quizRich(questionRow, item.question.q);
+			const answerRow = quizEl('div', 'quiz-missed-a', '→ ');
+			quizOptionText(answerRow, correct.text);
+			row.append(questionRow, answerRow);
 			missed.appendChild(row);
 		});
 		card.appendChild(missed);

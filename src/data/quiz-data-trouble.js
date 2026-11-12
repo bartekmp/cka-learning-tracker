@@ -5,7 +5,7 @@ QUIZ.push(
 		'tro-describe-events',
 		'trouble',
 		'Where do you see why a pod is stuck, such as scheduling or image pull errors?',
-		'The Events section of kubectl describe pod',
+		'The Events section of `kubectl describe pod`',
 		['kubectl get pod -o name', 'kubectl top pod', 'kubectl version'],
 		'Events are at the bottom of the output. Read from the bottom up.'
 	),
@@ -19,7 +19,7 @@ QUIZ.push(
 			'kubectl logs sidecar/web',
 			'kubectl logs web sidecar --all',
 		],
-		'Without -c, kubectl asks you to choose or picks the default container.'
+		'Without `-c`, kubectl asks you to choose or picks the default container.'
 	),
 	quizQ(
 		'tro-logs-follow',
@@ -43,7 +43,7 @@ QUIZ.push(
 		'Which command opens a shell in a running pod?',
 		'kubectl exec -it web -- sh',
 		['kubectl shell web', 'kubectl attach web --sh', 'kubectl run -it web -- sh'],
-		'The -- separates kubectl flags from the command in the container.'
+		'The `--` separates kubectl flags from the command in the container.'
 	),
 	quizQ(
 		'tro-wide',
@@ -63,7 +63,7 @@ QUIZ.push(
 			'kubectl get pods --only-name',
 			'kubectl get pods -o text=name',
 		],
-		'kubectl get pods -o name also works and prints pod/<name>.'
+		'`kubectl get pods -o name` also works and prints `pod/<name>`.'
 	),
 	quizQ(
 		'tro-sort-by',
@@ -169,7 +169,7 @@ QUIZ.push(
 		'Many pods show Evicted. Which node condition is a likely cause?',
 		'DiskPressure or MemoryPressure',
 		['NetworkUnavailable', 'Ready', 'Unschedulable'],
-		'kubectl describe node lists the conditions.'
+		'`kubectl describe node` lists the conditions.'
 	),
 	quizQ(
 		'tro-terminating',
@@ -186,10 +186,10 @@ QUIZ.push(
 	quizQ(
 		'tro-drain-stuck',
 		'trouble',
-		'kubectl drain hangs. Which is a common reason?',
+		'`kubectl drain` hangs. Which is a common reason?',
 		'A PodDisruptionBudget does not allow evicting another pod',
 		['The node has no kubelet', 'The Service is headless', 'The namespace is empty'],
-		'Check kubectl get pdb -A. A pod without a controller needs --force.'
+		'Check `kubectl get pdb -A`. A pod without a controller needs `--force`.'
 	),
 	quizQ(
 		'tro-oom-limit',
@@ -215,7 +215,7 @@ QUIZ.push(
 		'In-cluster name lookups fail. Where do you look first?',
 		'The CoreDNS pods and their logs in kube-system',
 		['The kubelet config on each node', 'The Ingress controller', 'etcd health'],
-		'kubectl -n kube-system get pods -l k8s-app=kube-dns'
+		'`kubectl -n kube-system get pods -l k8s-app=kube-dns`'
 	),
 	quizQ(
 		'tro-netpol-block',
@@ -223,7 +223,7 @@ QUIZ.push(
 		'Pods could reach each other yesterday, today they cannot. A new object appeared. Which?',
 		'A NetworkPolicy selecting the destination pods',
 		['A new ConfigMap', 'A new Namespace', 'A new PriorityClass'],
-		'kubectl get netpol -A shows what exists.'
+		'`kubectl get netpol -A` shows what exists.'
 	),
 	quizQ(
 		'tro-ingress-404',
@@ -231,7 +231,7 @@ QUIZ.push(
 		'An Ingress returns 404 from the controller. What do you verify first?',
 		'Host, path, backend Service name and port in the Ingress rule',
 		['The node taints', 'The StorageClass', 'The kubelet certificate'],
-		'kubectl describe ingress shows the backends and whether they resolve to endpoints.'
+		'`kubectl describe ingress` shows the backends and whether they resolve to endpoints.'
 	),
 	quizQ(
 		'tro-ingress-502',
@@ -239,7 +239,7 @@ QUIZ.push(
 		'The ingress controller answers 503 or 502. What does that suggest?',
 		'The backend Service has no ready endpoints',
 		['The TLS certificate is expired', 'The DNS name is wrong', 'The Ingress class is missing'],
-		'Check kubectl get endpoints for that Service.'
+		'Check `kubectl get endpoints` for that Service.'
 	),
 	quizQ(
 		'tro-pvc-describe',
@@ -264,8 +264,8 @@ QUIZ.push(
 		'trouble',
 		'Which command shows kubelet logs on a systemd node?',
 		'journalctl -u kubelet',
-		['kubectl logs kubelet', 'cat /var/log/kubelet.yaml', 'systemctl logs kubelet --pods'],
-		'Add -f to follow, and -n 100 for the last lines.'
+		['kubectl logs kubelet', '`cat /var/log/kubelet.yaml`', 'systemctl logs kubelet --pods'],
+		'Add `-f` to follow, and `-n 100` for the last lines.'
 	),
 	quizQ(
 		'tro-kubelet-restart',
@@ -279,9 +279,9 @@ QUIZ.push(
 		'tro-kubelet-down',
 		'trouble',
 		'A worker is NotReady and `systemctl status kubelet` shows it stopped. What do you run?',
-		'systemctl start kubelet (and enable it)',
+		'`systemctl start kubelet` (and enable it)',
 		['kubectl uncordon <node>', 'kubectl drain <node>', 'kubeadm token create'],
-		'Then read journalctl -u kubelet if it fails to stay up.'
+		'Then read `journalctl -u kubelet` if it fails to stay up.'
 	),
 	quizQ(
 		'tro-cp-manifest',
@@ -289,7 +289,7 @@ QUIZ.push(
 		'kube-apiserver is down after you edited its manifest. Where do you look?',
 		'The file in /etc/kubernetes/manifests and the container logs via crictl',
 		['kubectl logs kube-apiserver', 'The kube-proxy ConfigMap', 'kubectl describe apiserver'],
-		'kubectl does not work without the API server. crictl ps -a and crictl logs do.'
+		'kubectl does not work without the API server. `crictl ps -a` and `crictl logs` do.'
 	),
 	quizQ(
 		'tro-crictl-logs',
@@ -297,7 +297,7 @@ QUIZ.push(
 		'Which command shows the logs of a container directly through the runtime?',
 		'crictl logs <container-id>',
 		['kubectl logs --runtime <id>', 'docker logs <id> (always)', 'journalctl -u crictl'],
-		'Find the ID with crictl ps -a.'
+		'Find the ID with `crictl ps -a`.'
 	),
 	quizQ(
 		'tro-scheduler-flag',
@@ -305,23 +305,27 @@ QUIZ.push(
 		'The scheduler static pod crash-loops after an edit. What is the most likely cause?',
 		'A typo in its manifest, such as a wrong flag or path',
 		['A full PVC', 'A missing Ingress', 'A Service of the wrong type'],
-		'Compare with a working manifest and read crictl logs.'
+		'Compare with a working manifest and read `crictl logs`.'
 	),
 	quizQ(
 		'tro-cert-expired',
 		'trouble',
 		'kubectl fails with "x509: certificate has expired". Which command renews the cluster certificates?',
 		'kubeadm certs renew all',
-		['kubectl certificate renew', 'kubeadm token create', 'openssl renew /etc/kubernetes/pki'],
+		[
+			'kubectl certificate renew',
+			'kubeadm token create',
+			'`openssl renew /etc/kubernetes/pki`',
+		],
 		'Restart the control plane static pods afterwards.'
 	),
 	quizQ(
 		'tro-kubeconfig-refused',
 		'trouble',
-		'kubectl says "connection refused" to localhost:8080. What does that usually mean?',
+		'kubectl says "connection refused" to `localhost:8080`. What does that usually mean?',
 		'No kubeconfig was found, so kubectl used its default address',
 		['etcd is full', 'The CNI is broken', 'The node has no swap'],
-		'Check KUBECONFIG and ~/.kube/config, or run with --kubeconfig.'
+		'Check `KUBECONFIG` and ~/.kube/config, or run with --kubeconfig.'
 	),
 	quizQ(
 		'tro-current-context',
@@ -329,7 +333,7 @@ QUIZ.push(
 		'Your commands hit the wrong cluster. Which command shows the active context?',
 		'kubectl config current-context',
 		['kubectl cluster-info dump', 'kubectl whoami', 'kubectl get context'],
-		'kubectl config get-contexts lists all of them with a * on the active one.'
+		'`kubectl config get-contexts` lists all of them with a * on the active one.'
 	),
 	quizQ(
 		'tro-readyz',
@@ -345,12 +349,12 @@ QUIZ.push(
 		'Which command shows CPU and memory use per node?',
 		'kubectl top nodes',
 		['kubectl get nodes --usage', 'kubectl describe nodes --top', 'kubectl metrics nodes'],
-		'Needs metrics-server. kubectl top pods does the same for pods.'
+		'Needs metrics-server. `kubectl top pods` does the same for pods.'
 	),
 	quizQ(
 		'tro-top-containers',
 		'trouble',
-		'Which flag makes kubectl top pods break usage down per container?',
+		'Which flag makes `kubectl top pods` break usage down per container?',
 		'--containers',
 		['--detail', '-o wide', '--split'],
 		'Useful for finding the memory hog in a multi-container pod.'
@@ -381,7 +385,7 @@ QUIZ.push(
 		'The cluster is slow and API calls time out. Which component’s health do you check?',
 		'etcd',
 		['CoreDNS', 'kube-proxy', 'The Ingress controller'],
-		'Use etcdctl endpoint health with the TLS flags.'
+		'Use `etcdctl endpoint health` with the TLS flags.'
 	),
 	quizQ(
 		'tro-wrong-image-tag',
@@ -397,7 +401,7 @@ QUIZ.push(
 		'A private image fails with "unauthorized". What do you add to the pod?',
 		'imagePullSecrets referencing a docker-registry Secret',
 		['A ConfigMap with the password', 'A toleration', 'hostNetwork: true'],
-		'kubectl create secret docker-registry creates it.'
+		'`kubectl create secret docker-registry` creates it.'
 	),
 	quizQ(
 		'tro-debug-node',
@@ -414,7 +418,7 @@ QUIZ.push(
 	quizQ(
 		'tro-previous-vs-current',
 		'trouble',
-		'What does the --previous flag of kubectl logs show?',
+		'What does the `--previous` flag of `kubectl logs` show?',
 		'Logs of the container instance that ran before the last restart',
 		[
 			'Logs from the previous namespace',
