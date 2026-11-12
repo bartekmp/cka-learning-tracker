@@ -197,17 +197,11 @@ function App() {
 		};
 
 		window._asManualExport = async function () {
-			let tasksData = {};
-
-			if (fileHandle) {
-				try {
-					const text = await (await fileHandle.getFile()).text();
-					const p = JSON.parse(text);
-					if (p._type === SHARED_MARKER) tasksData = p.tasks || {};
-				} catch {
-					/* ignore */
-				}
-			}
+			// The other page's progress comes from the browser mirror, which
+			// both pages keep current — so the export is complete with or
+			// without a save file.
+			const tasks = mirrorRead('tasks');
+			const tasksData = tasks ? tasks.data : {};
 
 			const blob = new Blob(
 				[

@@ -105,17 +105,10 @@ async function autoSave() {
 }
 
 async function manualExport() {
-	let trackerData = {};
-
-	if (fileHandle) {
-		try {
-			const text = await (await fileHandle.getFile()).text();
-			const p = JSON.parse(text);
-			if (p._type === SHARED_MARKER) trackerData = p.tracker || {};
-		} catch {
-			/* ignore */
-		}
-	}
+	// The other page's progress comes from the browser mirror, which both
+	// pages keep current — so the export is complete with or without a save file.
+	const tracker = mirrorRead('tracker');
+	const trackerData = tracker ? tracker.data : {};
 
 	const blob = new Blob(
 		[
