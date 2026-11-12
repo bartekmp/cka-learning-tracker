@@ -391,6 +391,16 @@ html.dark footer a {
 	letter-spacing: 0.3px;
 }
 
+#pomo-tip {
+	font-size: 12px;
+	color: #888;
+	margin-bottom: 6px;
+}
+
+#pomo-tip:empty {
+	display: none;
+}
+
 #pomo-host[data-dark='1'] #pomo-phase {
 	color: #7a7872;
 }

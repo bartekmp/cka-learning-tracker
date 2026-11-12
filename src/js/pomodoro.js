@@ -5,8 +5,20 @@
 	var STORAGE_KEY = 'cka-pomodoro';
 	var PHASES = {
 		work: { label: 'Focus', mins: 25, color: '#ef4444', icon: '🍅' },
-		shortBreak: { label: 'Short Break', mins: 5, color: '#10b981', icon: '☕' },
-		longBreak: { label: 'Long Break', mins: 15, color: '#3b82f6', icon: '🌿' },
+		shortBreak: {
+			label: 'Short Break',
+			mins: 5,
+			color: '#10b981',
+			icon: '☕',
+			tip: 'Stand up, drink water, look away from the screen.',
+		},
+		longBreak: {
+			label: 'Long Break',
+			mins: 15,
+			color: '#3b82f6',
+			icon: '🌿',
+			tip: 'Walk around, stretch, eat something. No screens.',
+		},
 	};
 	var SESSIONS_PER_LONG = 4;
 	var CIRC = 2 * Math.PI * 11; // SVG ring circumference (r=11)
@@ -159,6 +171,10 @@
 	var phaseEl = document.createElement('div');
 	phaseEl.id = 'pomo-phase';
 
+	// Break suggestion, so a break is not spent staring at the screen.
+	var tipEl = document.createElement('div');
+	tipEl.id = 'pomo-tip';
+
 	var timeEl = document.createElement('div');
 	timeEl.id = 'pomo-time';
 
@@ -237,6 +253,7 @@
 
 	panel.appendChild(closeBtn);
 	panel.appendChild(phaseEl);
+	panel.appendChild(tipEl);
 	panel.appendChild(timeEl);
 	panel.appendChild(dotsEl);
 	panel.appendChild(btnsEl);
@@ -264,6 +281,7 @@
 		pill.style.borderColor = state.running ? ph.color + '99' : '';
 
 		phaseEl.textContent = ph.icon + '\u2002' + ph.label;
+		tipEl.textContent = ph.tip || '';
 		timeEl.textContent = fmt(secs);
 		timeEl.style.color = ph.color;
 
