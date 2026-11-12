@@ -35,6 +35,14 @@
 	</head>
 
 	<body>
+		<section id="sync-panel" hidden>
+			<div id="autosave-bar" class="autosave-bar state-none">
+				<span class="autosave-icon" id="as-icon">💾</span>
+				<span class="autosave-text" id="as-text">Setting up…</span>
+			</div>
+		</section>
+		<span class="as-flash" id="as-flash" role="status"></span>
+
 		<div class="wrap">
 			<h1>
 				<a
@@ -80,12 +88,6 @@
 					style="color: #2563eb; white-space: nowrap"
 					>Check current version ↗</a
 				>
-			</div>
-
-			<div id="autosave-bar" class="autosave-bar state-none">
-				<span class="autosave-icon" id="as-icon">💾</span>
-				<span class="autosave-text" id="as-text">Setting up…</span>
-				<span class="as-flash" id="as-flash"></span>
 			</div>
 
 			<div id="streak-widget"></div>

@@ -1,5 +1,6 @@
 // Shared autosave utilities — IndexedDB + File System Access API
-// Requires DOM elements: #autosave-bar, #as-icon, #as-text, #as-flash
+// Requires DOM elements: #sync-panel > #autosave-bar (#as-icon, #as-text), and
+// the #as-flash toast. The panel is opened from the Sync tab in the nav bar.
 
 const IDB_DB = 'cka-autosave',
 	IDB_STORE = 'handles';
@@ -235,6 +236,19 @@ function setBarText(el, parts) {
 	});
 }
 
+// The sync panel holds everything about saving: this bar and, in the
+// server-backed build, the sign-in box. It is toggled by the nav's Sync tab.
+function setSyncPanelOpen(open) {
+	const panel = document.getElementById('sync-panel');
+	if (!panel) return;
+	panel.hidden = !open;
+	const tab = document.getElementById('sync-tab');
+	if (tab) {
+		tab.classList.toggle('active', open);
+		tab.setAttribute('aria-expanded', String(open));
+	}
+}
+
 // cbs: { pickFile, reEnable, manualExport, manualImport }
 function setBarState(state, filename, cbs) {
 	const bar = document.getElementById('autosave-bar');
@@ -242,28 +256,31 @@ function setBarState(state, filename, cbs) {
 	const text = document.getElementById('as-text');
 	if (!bar) return;
 	bar.className = 'autosave-bar state-' + state;
+	// The Sync tab reads this to flag that the save file needs a click.
+	document.body.dataset.autosave = state;
+	// "perm" is the one state that needs the user — do not leave it hidden.
+	if (state === 'perm') setSyncPanelOpen(true);
 	bar.querySelectorAll('.as-btn, input[type=file]').forEach((el) => el.remove());
-	const fin = document.getElementById('as-flash');
 
 	if (state === 'active') {
 		icon.textContent = '✅';
 		setBarText(text, ['Auto-saving to ', { tag: 'strong', text: filename }]);
-		bar.insertBefore(mkBtn('Change file', '', cbs.pickFile), fin);
+		bar.appendChild(mkBtn('Change file', '', cbs.pickFile));
 	} else if (state === 'perm') {
 		icon.textContent = '⚠️';
 		setBarText(text, [
 			{ tag: 'strong', text: 'Click Re-enable to load your progress' },
 			' — your browser asks for file permission once per visit',
 		]);
-		bar.insertBefore(mkBtn('Re-enable', 'amber', cbs.reEnable), fin);
+		bar.appendChild(mkBtn('Re-enable', 'amber', cbs.reEnable));
 	} else if (state === 'none') {
 		icon.textContent = '💾';
 		setBarText(text, [
 			{ tag: 'strong', text: 'Set up auto-save' },
 			' — create a new file or load a previously saved one',
 		]);
-		bar.insertBefore(mkBtn('New file', 'primary', cbs.pickFile), fin);
-		bar.insertBefore(mkBtn('Load existing', '', cbs.loadFile), fin);
+		bar.appendChild(mkBtn('New file', 'primary', cbs.pickFile));
+		bar.appendChild(mkBtn('Load existing', '', cbs.loadFile));
 	} else {
 		// fallback (Firefox etc.)
 		icon.textContent = '💾';
@@ -282,11 +299,8 @@ function setBarState(state, filename, cbs) {
 		inp.accept = '.json';
 		inp.style.display = 'none';
 		inp.onchange = cbs.manualImport;
-		bar.insertBefore(mkBtn('Export', 'primary', cbs.manualExport), fin);
-		bar.insertBefore(
-			mkBtn('Import', '', () => inp.click()),
-			fin
-		);
-		bar.insertBefore(inp, fin);
+		bar.appendChild(mkBtn('Export', 'primary', cbs.manualExport));
+		bar.appendChild(mkBtn('Import', '', () => inp.click()));
+		bar.appendChild(inp);
 	}
 }

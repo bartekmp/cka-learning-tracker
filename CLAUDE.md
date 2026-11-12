@@ -151,6 +151,10 @@ IndexedDB (`cka-autosave` / `handles`) holds one entry, `cka-handle` — the
 `FileSystemFileHandle` of the user's save file. Handles cannot go in
 `localStorage`; they are not JSON-serializable.
 
+### The Sync panel
+
+Everything about saving lives in `#sync-panel`, static HTML at the top of both pages (outside React's root on the tracker). It is closed by default and toggled by the nav's **Sync** tab (`nav.js` → `setSyncPanelOpen()` in `autosave.js`). It opens by itself in the one state that needs a click (`perm`), and the tab shows ⚠️ then. `#as-flash` is a fixed toast outside the panel, because the pages also use `asFlash()` for general messages.
+
 ### The save file is a sync target, not the source of truth
 
 Optional auto-save to a real `.json` file uses the File System Access API

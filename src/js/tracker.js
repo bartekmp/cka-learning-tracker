@@ -573,19 +573,6 @@ function App() {
 						Check current version ↗
 					</a>
 				</div>
-				<div
-					id="autosave-bar"
-					className="autosave-bar state-none"
-					style={{ marginBottom: 14 }}
-				>
-					<span className="autosave-icon" id="as-icon">
-						💾
-					</span>
-					<span className="autosave-text" id="as-text">
-						Setting up…
-					</span>
-					<span className="as-flash" id="as-flash"></span>
-				</div>
 				{/* Filled by js/streak.js — React renders no children here. */}
 				<div id="streak-widget" />
 				<div

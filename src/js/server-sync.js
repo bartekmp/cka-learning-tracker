@@ -119,7 +119,7 @@
 
 	function setStatus(next) {
 		status = next;
-		renderPill();
+		renderBox();
 	}
 
 	function sessionExpired() {
@@ -214,7 +214,6 @@
 		const server = await api('GET', 'api/progress');
 		if (server.status !== 200) return 'Signed in, but could not load progress.';
 		await mergeWithServer(server.data);
-		panel.hidden = true;
 		return null;
 	}
 
@@ -230,40 +229,39 @@
 		setStatus('idle');
 	}
 
-	// ── UI: a floating pill, top left ────────────────────────────────────────
-	const pill = document.createElement('button');
-	pill.id = 'server-pill';
-	pill.type = 'button';
-	const panel = document.createElement('div');
-	panel.id = 'server-panel';
-	panel.hidden = true;
+	// ── UI: a box in the sync panel, under the save-file bar ─────────────────
+	const box = document.createElement('div');
+	box.id = 'server-box';
+	box.className = 'autosave-bar';
 
-	function el(tag, text) {
+	function el(tag, text, className) {
 		const node = document.createElement(tag);
 		if (text) node.textContent = text;
+		if (className) node.className = className;
 		return node;
 	}
 
-	function renderPill() {
-		const user = loadState().user;
-		let label = '☁️ Sign in to sync';
-		if (user && status === 'syncing') label = '☁️ Syncing…';
-		else if (user && status === 'offline') label = '☁️ Offline — will retry';
-		else if (user) label = '☁️ Synced';
-		pill.textContent = label;
-		pill.classList.toggle('signed-in', !!user);
-		if (!panel.hidden) renderPanel();
+	function statusText() {
+		if (status === 'syncing') return 'Syncing…';
+		if (status === 'offline') return 'Offline — will retry';
+		return 'Synced';
 	}
 
 	function renderSignedIn(user) {
-		panel.appendChild(el('p', `Signed in as ${user}. Progress syncs across your devices.`));
-		const out = el('button', 'Sign out');
+		const text = el('span', '', 'autosave-text');
+		text.append(el('strong', statusText()), ` — signed in as ${user}`);
+		const out = el('button', 'Sign out', 'as-btn');
 		out.type = 'button';
 		out.onclick = signOut;
-		panel.appendChild(out);
+		box.append(el('span', '☁️', 'autosave-icon'), text, out);
 	}
 
 	function renderSignInForm() {
+		const text = el('span', '', 'autosave-text');
+		text.append(
+			el('strong', 'Sign in to sync across devices'),
+			' — without it, everything stays in this browser'
+		);
 		const form = el('form');
 		const user = el('input');
 		user.placeholder = 'User name';
@@ -274,10 +272,9 @@
 		password.placeholder = 'Password';
 		password.autocomplete = 'current-password';
 		password.required = true;
-		const submit = el('button', 'Sign in');
+		const submit = el('button', 'Sign in', 'as-btn primary');
 		submit.type = 'submit';
-		const error = el('p');
-		error.className = 'server-error';
+		const error = el('span', '', 'server-error');
 		form.onsubmit = async (event) => {
 			event.preventDefault();
 			submit.disabled = true;
@@ -291,38 +288,24 @@
 			if (message) error.textContent = message;
 		};
 		form.append(user, password, submit, error);
-		panel.appendChild(
-			el(
-				'p',
-				'Sign in to sync progress across devices. Without it, everything stays in this browser.'
-			)
-		);
-		panel.appendChild(form);
-		user.focus();
+		box.append(el('span', '☁️', 'autosave-icon'), text, form);
 	}
 
-	function renderPanel() {
-		// Do not wipe a half-typed sign-in form on a status change.
-		if (panel.querySelector('form') && !loadState().user) return;
-		panel.textContent = '';
+	function renderBox() {
 		const user = loadState().user;
+		// The Sync tab shows a warning while the server cannot be reached.
+		document.body.dataset.server = user ? status : 'signed-out';
+		box.classList.toggle('state-active', !!user && status !== 'offline');
+		// Do not wipe a half-typed sign-in form on a status change.
+		if (!user && box.querySelector('form')) return;
+		box.textContent = '';
 		if (user) renderSignedIn(user);
 		else renderSignInForm();
 	}
 
-	pill.onclick = () => {
-		panel.hidden = !panel.hidden;
-		if (!panel.hidden) {
-			panel.textContent = '';
-			renderPanel();
-		}
-	};
-	document.addEventListener('keydown', (event) => {
-		if (event.key === 'Escape') panel.hidden = true;
-	});
-
-	document.body.append(pill, panel);
-	renderPill();
+	const syncPanel = document.getElementById('sync-panel');
+	if (syncPanel) syncPanel.appendChild(box);
+	renderBox();
 
 	// ── Start ────────────────────────────────────────────────────────────────
 	sync();

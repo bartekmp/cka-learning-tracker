@@ -153,16 +153,61 @@ html.dark .as-btn.amber {
 }
 
 /* Flash notification */
+
+/* Toast — lives outside the sync panel so messages show while it is closed. */
 .as-flash {
-	font-size: 11px;
+	position: fixed;
+	bottom: 22px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 950;
+	pointer-events: none;
+	border: 0.5px solid rgba(0, 0, 0, 0.12);
+	border-radius: 99px;
+	background: #fff;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+	padding: 7px 14px;
+	font-size: 12px;
+	font-weight: 600;
 	color: #16a34a;
 	opacity: 0;
 	transition: opacity 0.4s;
 	white-space: nowrap;
 }
 
+html.dark .as-flash {
+	background: #252522;
+	border-color: rgba(255, 255, 255, 0.15);
+}
+
 .as-flash.show {
 	opacity: 1;
+}
+
+/* Sync panel — opened from the nav's Sync tab */
+#sync-panel {
+	max-width: 860px;
+	margin: 0 auto 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+#sync-panel[hidden] {
+	display: none;
+}
+
+button.quick-nav-link {
+	border: 0;
+	background: none;
+	font-family: inherit;
+	cursor: pointer;
+}
+
+/* The save file needs a click (or the server is unreachable) — say so on the tab. */
+body[data-autosave='perm'] #sync-tab::after,
+body[data-server='offline'] #sync-tab::after {
+	content: ' ⚠️';
 }
 
 /* ── Quick navigation bar ───────────────────────────────────────────────────── */

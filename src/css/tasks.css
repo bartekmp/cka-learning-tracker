@@ -2,10 +2,6 @@ body {
 	padding: 24px 16px 80px;
 }
 
-.autosave-bar {
-	margin-bottom: 18px;
-}
-
 .wrap {
 	max-width: 860px;
 	margin: 0 auto;
@@ -632,6 +628,7 @@ html.dark #task-search:focus {
 body.exam-active #task-controls,
 body.exam-active .tabs,
 body.exam-active #panels,
+body.exam-active #sync-panel,
 body.exam-active #streak-widget,
 body.exam-active #overall-progress,
 body.exam-active .cluster-details {

@@ -18,6 +18,23 @@
 			return '<a href="' + l.href + '" class="' + cls + '">' + l.label + '</a>';
 		})
 		.join('');
+	// The Sync tab does not navigate — it opens the panel that holds the save
+	// file controls (and, in the server-backed build, the sign-in box).
+	var panel = document.getElementById('sync-panel');
+	if (panel && window.setSyncPanelOpen) {
+		var syncTab = document.createElement('button');
+		syncTab.id = 'sync-tab';
+		syncTab.type = 'button';
+		syncTab.className = 'quick-nav-link' + (panel.hidden ? '' : ' active');
+		syncTab.textContent = '🔄 Sync';
+		syncTab.title = 'Synchronization and backup';
+		syncTab.setAttribute('aria-controls', 'sync-panel');
+		syncTab.setAttribute('aria-expanded', String(!panel.hidden));
+		syncTab.onclick = function () {
+			window.setSyncPanelOpen(panel.hidden);
+		};
+		nav.appendChild(syncTab);
+	}
 	document.body.prepend(nav);
 
 	// ── Save scroll position (debounced 200 ms) ─────────────────────────────────
