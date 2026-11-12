@@ -25,3 +25,22 @@ html.dark #server-box input {
 	color: #dc2626;
 	font-size: 12px;
 }
+
+/* Sign-in dot on the Sync tab: hollow when signed out, green when signed in. */
+body[data-server] #sync-tab::before {
+	content: '';
+	display: inline-block;
+	box-sizing: border-box;
+	width: 9px;
+	height: 9px;
+	margin-right: 6px;
+	border: 1.5px solid #16a34a;
+	border-radius: 50%;
+	background: #16a34a;
+}
+
+body[data-server='signed-out'] #sync-tab::before {
+	background: transparent;
+	border-color: currentcolor;
+	opacity: 0.6;
+}
