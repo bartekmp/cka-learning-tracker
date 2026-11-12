@@ -7,6 +7,7 @@ Project-specific facts and guidelines for AI coding agents working in this repo.
 A **fully static, local-only** study site for the Certified Kubernetes Administrator (CKA) exam, built with ADHD-friendly UX in mind. It has two main pages:
 
 - **Study Tracker** (`cka-tracker.html`) — React (bundled via esbuild) + localStorage persistence. Covers the syllabus in 9 teaching sections with topics, cheatsheet commands, ADHD tips, and progress tracking. Note the exam itself grades **5 weighted domains**, not 9 — each section carries a `domain` key mapping it to one, and the tracker reports weighted "exam readiness" from that. See `EXAM_DOMAINS` in `src/data/exam-domains.js` (shared with the practice tasks page, whose "Pick for me" button uses the same weights).
+- **Quiz** (`cka-quiz.html`) — Vanilla JS. 5-question multiple-choice rounds from `src/data/quiz-data.js` (A–D keys, one-line explanation after each answer, missed questions come back first). A finished round counts as activity for the streak.
 - **Practice Tasks** (`cka-practice-tasks.html`) — Vanilla JS IIFE. Step-by-step exam-style tasks with copy-ready commands, hints, and difficulty ratings.
 
 The official build has **no backend, no server, no API, no authentication**. All state lives in `localStorage`. Never add a server dependency, database, or external API to it. The one exception is the opt-in **server-backed variant** (see below), which must stay fully separable from the static build.
@@ -48,11 +49,13 @@ src/                   source files (edit these)
     exam-domains.js    the 5 weighted exam domains, shared by both pages
     tracker-data.js    all study tracker content (topics, commands, labs, tips)
     tasks-data.js      all practice task content (tasks, steps, hints, commands)
+    quiz-data.js       quiz questions (stable `id`s, each tagged with an exam domain)
   js/
     tracker.js         React component tree for the tracker page (JSX in a .js file)
     tasks.js           vanilla JS IIFE for the practice tasks page
     theme.js           dark/light mode toggle, shared across all pages
     autosave.js        localStorage-based autosave helper, shared across all pages
+    quiz.js            quiz page logic
     streak.js          daily goal + weekly streak widget, shared across tracker and tasks
     pomodoro.js        floating Pomodoro timer widget, shared across all pages
     server-sync.js     login + sync client — server-backed build only
@@ -144,6 +147,7 @@ Progress, theme preference, Pomodoro timer state, and any other user data must g
 - `cka-tracker-ui` — tracker tab + expanded sections
 - `cka-tasks-ui` — practice tasks UI state
 - `cka-review` — practice tasks whose solution was opened, with the day they come back for review (this browser only, not synced)
+- `cka-quiz` — last result per quiz question (this browser only, not synced)
 - `cka-streak-ui` — whether the streak widget's heatmap is expanded (hidden by default)
 - `cka-theme` — light/dark preference
 - `cka-pomodoro` — Pomodoro timer state and custom durations
@@ -228,6 +232,7 @@ Tasks in `tasks-data.js` should reflect real exam scenarios. When reviewing:
 | `index.html`              | `theme.js`                                             | Landing page, links to tracker and tasks |
 | `cka-tracker.html`        | `theme.js`, `autosave.js`, `tracker.js`, `pomodoro.js` | Study tracker                            |
 | `cka-practice-tasks.html` | `theme.js`, `autosave.js`, `tasks.js`, `pomodoro.js`   | Practice tasks                           |
+| `cka-quiz.html`           | `theme.js`, `autosave.js`, `quiz.js`, `pomodoro.js`    | Quiz                                     |
 | `404.html`                | —                                                      | Custom GitHub Pages 404                  |
 
 ## Deployment

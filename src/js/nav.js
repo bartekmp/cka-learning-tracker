@@ -8,6 +8,7 @@
 		{ href: 'index.html', label: '🏠 Homepage' },
 		{ href: 'cka-tracker.html', label: '📋 Study' },
 		{ href: 'cka-practice-tasks.html', label: '🧪 Practice' },
+		{ href: 'cka-quiz.html', label: '🧠 Quiz' },
 	];
 	var nav = document.createElement('nav');
 	nav.className = 'quick-nav';

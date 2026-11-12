@@ -6,6 +6,7 @@ const scriptGlobals = {
 	CHEATSHEET: 'readonly',
 	EXAM_DOMAINS: 'readonly',
 	HAS_FSA: 'readonly',
+	QUIZ: 'readonly',
 	SECTIONS: 'readonly',
 	SHARED_MARKER: 'readonly',
 	TIPS: 'readonly',
@@ -144,7 +145,7 @@ export default [
 	},
 	// Files that CONSUME shared globals (plain script, no bundler).
 	{
-		files: ['src/js/tasks.js'],
+		files: ['src/js/tasks.js', 'src/js/quiz.js'],
 		languageOptions: {
 			ecmaVersion: 2022,
 			sourceType: 'script',

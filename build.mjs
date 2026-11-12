@@ -30,6 +30,7 @@ await Promise.all([
     cp(path.join(srcDir, 'index.html'), path.join(distDir, 'index.html')),
     cp(path.join(srcDir, 'cka-tracker.html'), path.join(distDir, 'cka-tracker.html')),
     cp(path.join(srcDir, 'cka-practice-tasks.html'), path.join(distDir, 'cka-practice-tasks.html')),
+    cp(path.join(srcDir, 'cka-quiz.html'), path.join(distDir, 'cka-quiz.html')),
     cp(path.join(srcDir, '404.html'), path.join(distDir, '404.html')),
     cp(path.join(srcDir, 'robots.txt'), path.join(distDir, 'robots.txt')),
     cp(path.join(srcDir, 'favicon.svg'), path.join(distDir, 'favicon.svg')),
@@ -232,7 +233,7 @@ async function assetVersion(relPath) {
     return assetVersions.get(relPath);
 }
 
-const htmlPages = ['index.html', 'cka-tracker.html', 'cka-practice-tasks.html'];
+const htmlPages = ['index.html', 'cka-tracker.html', 'cka-practice-tasks.html', 'cka-quiz.html'];
 await Promise.all(
     htmlPages.map(async (file) => {
         const filePath = path.join(distDir, file);

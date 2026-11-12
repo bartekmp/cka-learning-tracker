@@ -133,6 +133,11 @@ html.dark .card:hover {
 	border-top-color: #a78bfa;
 }
 
+.card.green {
+	grid-column: 1 / -1;
+	border-top-color: #4ade80;
+}
+
 .card-icon {
 	font-size: 28px;
 	line-height: 1;
