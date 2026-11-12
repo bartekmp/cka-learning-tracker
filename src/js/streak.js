@@ -93,17 +93,18 @@ function buildHeatmap(activity, today) {
 	return wrap;
 }
 
+// Hidden unless the user opened it — the streak bar alone is the default view.
 function heatmapHidden() {
 	try {
-		return localStorage.getItem(STREAK_UI_KEY) === 'heatmap-hidden';
+		return localStorage.getItem(STREAK_UI_KEY) !== 'heatmap-shown';
 	} catch {
-		return false;
+		return true;
 	}
 }
 
 function toggleHeatmap() {
 	try {
-		localStorage.setItem(STREAK_UI_KEY, heatmapHidden() ? '' : 'heatmap-hidden');
+		localStorage.setItem(STREAK_UI_KEY, heatmapHidden() ? 'heatmap-shown' : '');
 	} catch {
 		/* storage unavailable — the toggle just will not stick */
 	}
