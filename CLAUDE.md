@@ -143,6 +143,7 @@ Progress, theme preference, Pomodoro timer state, and any other user data must g
 - `cka-progress` — progress for both pages plus the `activity` log (date → items completed, feeds the streak widget); the mirror of the save file (see below)
 - `cka-tracker-ui` — tracker tab + expanded sections
 - `cka-tasks-ui` — practice tasks UI state
+- `cka-review` — practice tasks whose solution was opened, with the day they come back for review (this browser only, not synced)
 - `cka-streak-ui` — whether the streak widget's heatmap is expanded (hidden by default)
 - `cka-theme` — light/dark preference
 - `cka-pomodoro` — Pomodoro timer state and custom durations

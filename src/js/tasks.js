@@ -450,6 +450,23 @@ function buildPanels() {
 			// Above the solution toggle: complete first, peek only if stuck.
 			card.insertBefore(actions, toggle);
 
+			// Shown only when this task is due for review (see "Review queue").
+			const review = document.createElement('div');
+			review.className = 'review-note';
+			review.appendChild(
+				document.createTextNode('🔁 Review: solve it again without peeking. ')
+			);
+			const gotIt = document.createElement('button');
+			gotIt.type = 'button';
+			gotIt.textContent = '✓ Got it';
+			gotIt.onclick = () => {
+				reviewClear(task.id);
+				card.classList.remove('review-due');
+			};
+			review.appendChild(gotIt);
+			card.insertBefore(review, actions);
+			card.classList.toggle('review-due', reviewIsDue(task.id));
+
 			card.appendChild(sol);
 
 			toggle.addEventListener('click', () => {
@@ -458,6 +475,10 @@ function buildPanels() {
 				arrow.style.transform = open ? 'rotate(90deg)' : 'none';
 				toggle.childNodes[1].textContent =
 					' ' + (open ? 'Hide solution' : 'Show step-by-step solution');
+				if (open) {
+					reviewSchedule(task.id);
+					card.classList.remove('review-due');
+				}
 			});
 
 			section.appendChild(card);
@@ -504,6 +525,57 @@ function jumpToTask(sectionIdx, taskId) {
 	}, 80);
 }
 
+// ── Review queue ─────────────────────────────────────────────────────────────
+// Opening a solution means the task was not solid yet, so it comes back after
+// REVIEW_DAYS. Stored in this browser only: it is a nudge, not progress.
+const REVIEW_KEY = 'cka-review';
+const REVIEW_DAYS = 2;
+
+function reviewLoad() {
+	try {
+		return JSON.parse(localStorage.getItem(REVIEW_KEY)) || {};
+	} catch {
+		return {};
+	}
+}
+
+function reviewSave(queue) {
+	try {
+		localStorage.setItem(REVIEW_KEY, JSON.stringify(queue));
+	} catch {
+		/* storage full or disabled — the review nudge is optional */
+	}
+}
+
+function reviewSchedule(taskId) {
+	const due = new Date();
+	due.setDate(due.getDate() + REVIEW_DAYS);
+	const queue = reviewLoad();
+	queue[taskId] = activityDayKey(due);
+	reviewSave(queue);
+}
+
+function reviewClear(taskId) {
+	const queue = reviewLoad();
+	delete queue[taskId];
+	reviewSave(queue);
+}
+
+function reviewIsDue(taskId) {
+	const dueDay = reviewLoad()[taskId];
+	return !!dueDay && dueDay <= activityDayKey(new Date());
+}
+
+function reviewDueIds() {
+	const ids = [];
+	SECTIONS.forEach((s) => {
+		s.tasks.forEach((t) => {
+			if (reviewIsDue(t.id)) ids.push(t.id);
+		});
+	});
+	return ids;
+}
+
 // Picks the domain with the most exam points still on the table — its exam
 // weight times the share of its tasks not done yet — then a random unfinished
 // task inside it. The user gets one thing to do, not a list to choose from.
@@ -524,6 +596,14 @@ function weakestDomain() {
 }
 
 function pickTaskForMe() {
+	const dueIds = reviewDueIds();
+	if (dueIds.length) {
+		const taskId = dueIds[0];
+		const sectionIdx = SECTIONS.findIndex((s) => s.tasks.some((t) => t.id === taskId));
+		jumpToTask(sectionIdx, taskId);
+		asFlash(`🔁 Review time — you peeked at this one (${dueIds.length} due)`);
+		return;
+	}
 	const weakest = weakestDomain();
 	if (!weakest) {
 		asFlash('🎉 All tasks done!');
