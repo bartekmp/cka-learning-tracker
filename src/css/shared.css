@@ -819,3 +819,106 @@ html.dark .cluster-details > summary {
 html.dark .cluster-details .cluster-card {
 	border-top-color: rgba(255, 255, 255, 0.08);
 }
+
+/* Streak widget — daily goal + weekly streak */
+#streak-widget {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 18px;
+	border: 0.5px solid rgba(0, 0, 0, 0.1);
+	border-left: 4px solid #d4d4cf;
+	border-radius: 8px;
+	background: #fff;
+	padding: 10px 14px;
+	margin: 10px 0 14px;
+	font-size: 13px;
+}
+
+#streak-widget.today-done {
+	border-left-color: #22c55e;
+}
+
+html.dark #streak-widget {
+	background: #252522;
+	border-color: rgba(255, 255, 255, 0.1);
+	border-left-color: #55554f;
+}
+
+html.dark #streak-widget.today-done {
+	border-left-color: #22c55e;
+}
+
+.streak-headline {
+	font-weight: 700;
+}
+
+.streak-today {
+	color: #6b6b66;
+}
+
+html.dark .streak-today {
+	color: #b0ada3;
+}
+
+#streak-widget.today-done .streak-today {
+	color: #15803d;
+	font-weight: 600;
+}
+
+html.dark #streak-widget.today-done .streak-today {
+	color: #4ade80;
+}
+
+.streak-week {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: auto;
+}
+
+.streak-day {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 10px;
+	font-weight: 600;
+	background: #ecece8;
+	color: #888780;
+}
+
+html.dark .streak-day {
+	background: #33332f;
+	color: #8a8880;
+}
+
+.streak-day.active,
+html.dark .streak-day.active {
+	background: #22c55e;
+	color: #fff;
+}
+
+.streak-day.today {
+	outline: 2px solid #2563eb;
+	outline-offset: 1px;
+}
+
+.streak-week-label {
+	margin-left: 6px;
+	font-size: 12px;
+	color: #6b6b66;
+	white-space: nowrap;
+}
+
+html.dark .streak-week-label {
+	color: #b0ada3;
+}
+
+.streak-week-label.met,
+html.dark .streak-week-label.met {
+	color: #16a34a;
+	font-weight: 600;
+}

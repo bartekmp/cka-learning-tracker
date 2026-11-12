@@ -3,127 +3,149 @@ import globals from 'globals';
 
 // Globals that autosave.js defines and other script files consume via the page scope.
 const scriptGlobals = {
-    CHEATSHEET: 'readonly',
-    EXAM_DOMAINS: 'readonly',
-    HAS_FSA: 'readonly',
-    SECTIONS: 'readonly',
-    SHARED_MARKER: 'readonly',
-    TIPS: 'readonly',
-    asFlash: 'readonly',
-    canWrite: 'readonly',
-    hasWrite: 'readonly',
-    idbDel: 'readonly',
-    idbGet: 'readonly',
-    idbSet: 'readonly',
-    isPermError: 'readonly',
-    mirrorRead: 'readonly',
-    mirrorWrite: 'readonly',
-    readSection: 'readonly',
-    setBarState: 'readonly',
-    writeSection: 'readonly',
+	CHEATSHEET: 'readonly',
+	EXAM_DOMAINS: 'readonly',
+	HAS_FSA: 'readonly',
+	SECTIONS: 'readonly',
+	SHARED_MARKER: 'readonly',
+	TIPS: 'readonly',
+	activityDayKey: 'readonly',
+	activityMerge: 'readonly',
+	activityRead: 'readonly',
+	activityBump: 'readonly',
+	asFlash: 'readonly',
+	canWrite: 'readonly',
+	hasWrite: 'readonly',
+	idbDel: 'readonly',
+	idbGet: 'readonly',
+	idbSet: 'readonly',
+	isPermError: 'readonly',
+	mirrorRead: 'readonly',
+	mirrorWrite: 'readonly',
+	readSection: 'readonly',
+	renderStreak: 'readonly',
+	setBarState: 'readonly',
+	writeSection: 'readonly',
 };
 
 const noUnusedVars = [
-    'error',
-    {
-        vars: 'all',
-        varsIgnorePattern: '^_',
-        args: 'after-used',
-        argsIgnorePattern: '^_',
-        caughtErrors: 'all',
-        caughtErrorsIgnorePattern: '^_',
-    },
+	'error',
+	{
+		vars: 'all',
+		varsIgnorePattern: '^_',
+		args: 'after-used',
+		argsIgnorePattern: '^_',
+		caughtErrors: 'all',
+		caughtErrorsIgnorePattern: '^_',
+	},
 ];
 
 export default [
-    {
-        ignores: ['dist/**', 'node_modules/**'],
-    },
-    js.configs.recommended,
-    // Build script — Node.js ESM.
-    {
-        files: ['build.mjs'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
-            globals: { ...globals.node },
-        },
-        rules: { 'no-unused-vars': noUnusedVars },
-    },
-    // Pomodoro widget — standalone IIFE browser script, no shared globals.
-    {
-        files: ['src/js/pomodoro.js'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'script',
-            globals: { ...globals.browser, ...globals.es2022 },
-        },
-        rules: { 'no-unused-vars': noUnusedVars },
-    },
-    // Quick-nav + scroll persistence — standalone IIFE browser script.
-    {
-        files: ['src/js/nav.js'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'script',
-            globals: { ...globals.browser, ...globals.es2022 },
-        },
-        rules: { 'no-unused-vars': noUnusedVars },
-    },
-    // Intro tour — standalone IIFE browser script, only used on index.html.
-    {
-        files: ['src/js/tour.js'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'script',
-            globals: { ...globals.browser, ...globals.es2022 },
-        },
-        rules: { 'no-unused-vars': noUnusedVars },
-    },
-    // Practice-cluster CTA — standalone IIFE browser script, used on both pages.
-    {
-        files: ['src/js/cluster-cta.js'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'script',
-            globals: { ...globals.browser, ...globals.es2022 },
-        },
-        rules: { 'no-unused-vars': noUnusedVars },
-    },
-    // Files that DEFINE shared globals (loaded as <script> tags; top-level vars become page-scoped).
-    {
-        files: ['src/data/**/*.js', 'src/js/autosave.js', 'src/js/theme.js'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'script',
-            globals: { ...globals.browser, ...globals.es2022 },
-        },
-        rules: {
-            // vars:'local' suppresses "assigned but never used" for intentional global exports.
-            'no-unused-vars': [noUnusedVars[0], { ...noUnusedVars[1], vars: 'local' }],
-        },
-    },
-    // Files that CONSUME shared globals (plain script, no bundler).
-    {
-        files: ['src/js/tasks.js'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'script',
-            globals: { ...globals.browser, ...globals.es2022, ...scriptGlobals },
-        },
-        rules: { 'no-unused-vars': noUnusedVars },
-    },
-    // React/JSX tracker bundle — ESM module, consumes shared globals via preceding <script> tags.
-    {
-        files: ['src/js/tracker.js'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
-            parserOptions: {
-                ecmaFeatures: { jsx: true },
-            },
-            globals: { ...globals.browser, ...globals.es2022, ...scriptGlobals },
-        },
-        rules: { 'no-unused-vars': noUnusedVars },
-    },
+	{
+		ignores: ['dist/**', 'node_modules/**'],
+	},
+	js.configs.recommended,
+	// Build script — Node.js ESM.
+	{
+		files: ['build.mjs'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'module',
+			globals: { ...globals.node },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
+	// Pomodoro widget — standalone IIFE browser script, no shared globals.
+	{
+		files: ['src/js/pomodoro.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: { ...globals.browser, ...globals.es2022 },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
+	// Quick-nav + scroll persistence — standalone IIFE browser script.
+	{
+		files: ['src/js/nav.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: { ...globals.browser, ...globals.es2022 },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
+	// Intro tour — standalone IIFE browser script, only used on index.html.
+	{
+		files: ['src/js/tour.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: { ...globals.browser, ...globals.es2022 },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
+	// Practice-cluster CTA — standalone IIFE browser script, used on both pages.
+	{
+		files: ['src/js/cluster-cta.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: { ...globals.browser, ...globals.es2022 },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
+	// Files that DEFINE shared globals (loaded as <script> tags; top-level vars become page-scoped).
+	{
+		files: ['src/data/**/*.js', 'src/js/autosave.js', 'src/js/theme.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: { ...globals.browser, ...globals.es2022 },
+		},
+		rules: {
+			// vars:'local' suppresses "assigned but never used" for intentional global exports.
+			'no-unused-vars': [noUnusedVars[0], { ...noUnusedVars[1], vars: 'local' }],
+		},
+	},
+	// Streak widget — defines renderStreak, consumes the activity log from autosave.js.
+	{
+		files: ['src/js/streak.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: {
+				...globals.browser,
+				...globals.es2022,
+				activityDayKey: 'readonly',
+				activityRead: 'readonly',
+			},
+		},
+		rules: {
+			'no-unused-vars': [noUnusedVars[0], { ...noUnusedVars[1], vars: 'local' }],
+		},
+	},
+	// Files that CONSUME shared globals (plain script, no bundler).
+	{
+		files: ['src/js/tasks.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: { ...globals.browser, ...globals.es2022, ...scriptGlobals },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
+	// React/JSX tracker bundle — ESM module, consumes shared globals via preceding <script> tags.
+	{
+		files: ['src/js/tracker.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'module',
+			parserOptions: {
+				ecmaFeatures: { jsx: true },
+			},
+			globals: { ...globals.browser, ...globals.es2022, ...scriptGlobals },
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
+	},
 ];

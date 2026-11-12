@@ -632,6 +632,7 @@ html.dark #task-search:focus {
 body.exam-active #task-controls,
 body.exam-active .tabs,
 body.exam-active #panels,
+body.exam-active #streak-widget,
 body.exam-active #overall-progress,
 body.exam-active .cluster-details {
 	display: none;

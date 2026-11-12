@@ -52,6 +52,7 @@ src/                   source files (edit these)
     tasks.js           vanilla JS IIFE for the practice tasks page
     theme.js           dark/light mode toggle, shared across all pages
     autosave.js        localStorage-based autosave helper, shared across all pages
+    streak.js          daily goal + weekly streak widget, shared across tracker and tasks
     pomodoro.js        floating Pomodoro timer widget, shared across all pages
 cluster/               local practice-cluster toolkit (kind-based, see cluster/README.md)
   setup.sh / setup.ps1     create the 2-node cluster + addons (Bash / PowerShell)
@@ -136,7 +137,7 @@ React and ReactDOM are bundled by esbuild from `node_modules`. All `devDependenc
 
 Progress, theme preference, Pomodoro timer state, and any other user data must go in `localStorage`. Keys in use:
 
-- `cka-progress` — progress for both pages, the mirror of the save file (see below)
+- `cka-progress` — progress for both pages plus the `activity` log (date → items completed, feeds the streak widget); the mirror of the save file (see below)
 - `cka-tracker-ui` — tracker tab + expanded sections
 - `cka-tasks-ui` — practice tasks UI state
 - `cka-theme` — light/dark preference

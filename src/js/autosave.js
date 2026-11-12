@@ -106,10 +106,59 @@ function mirrorWrite(section, data, pending) {
 	}
 }
 
+// ── Activity log ─────────────────────────────────────────────────────────────
+// { 'YYYY-MM-DD': itemsCompletedThatDay } — feeds the streak widget. It lives
+// in the mirror next to progress, so it follows the save file between devices.
+function activityDayKey(date) {
+	// Local date, not UTC — "today" must match the user's own calendar.
+	const y = date.getFullYear();
+	const m = String(date.getMonth() + 1).padStart(2, '0');
+	const d = String(date.getDate()).padStart(2, '0');
+	return `${y}-${m}-${d}`;
+}
+
+function activityRead() {
+	const p = mirrorLoad();
+	return (p && p.activity) || {};
+}
+
+function activitySave(activity) {
+	const p = mirrorLoad() || { _type: SHARED_MARKER, tracker: {}, tasks: {}, pending: {} };
+	p.activity = activity;
+	try {
+		localStorage.setItem(MIRROR_KEY, JSON.stringify(p));
+	} catch {
+		/* storage full or disabled */
+	}
+	// Every change to the log — a tick, an import, a save-file merge — goes
+	// through here, so this is the one place the widget needs repainting from.
+	if (window.renderStreak) window.renderStreak();
+}
+
+// Keeps the higher count per day, so merging can never erase a study day.
+function activityMerge(other) {
+	const merged = Object.assign({}, activityRead());
+	Object.keys(other || {}).forEach((day) => {
+		merged[day] = Math.max(merged[day] || 0, other[day] || 0);
+	});
+	activitySave(merged);
+	return merged;
+}
+
+function activityBump(count) {
+	const activity = Object.assign({}, activityRead());
+	const today = activityDayKey(new Date());
+	activity[today] = (activity[today] || 0) + count;
+	activitySave(activity);
+}
+
 async function readSection(h, section) {
 	const text = await (await h.getFile()).text();
 	const p = JSON.parse(text);
-	if (p._type === SHARED_MARKER) return p[section] || {};
+	if (p._type === SHARED_MARKER) {
+		activityMerge(p.activity);
+		return p[section] || {};
+	}
 	if (section === 'tracker' && p._type === 'cka-tracker-progress-v1') return p.data || {};
 	if (section === 'tasks' && p._type === 'cka-tasks-progress-v1') return p.data || {};
 	throw new Error('wrong file');
@@ -117,12 +166,14 @@ async function readSection(h, section) {
 
 async function writeSection(h, section, data) {
 	let combined = { tracker: {}, tasks: {} };
+	let fileActivity = {};
 
 	try {
 		const text = await (await h.getFile()).text();
 		const p = JSON.parse(text);
 		if (p._type === SHARED_MARKER) {
 			combined = { tracker: p.tracker || {}, tasks: p.tasks || {} };
+			fileActivity = p.activity || {};
 		} else if (p._type === 'cka-tracker-progress-v1') {
 			combined.tracker = p.data || {};
 		} else if (p._type === 'cka-tasks-progress-v1') {
@@ -133,6 +184,7 @@ async function writeSection(h, section, data) {
 	}
 
 	combined[section] = data;
+	combined.activity = activityMerge(fileActivity);
 	const w = await h.createWritable();
 	await w.write(
 		JSON.stringify(

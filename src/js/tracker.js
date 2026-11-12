@@ -217,6 +217,7 @@ function App() {
 							saved: new Date().toISOString(),
 							tracker: doneRef.current,
 							tasks: tasksData,
+							activity: activityRead(),
 						},
 						null,
 						2
@@ -244,6 +245,7 @@ function App() {
 
 					if (payload._type === SHARED_MARKER) {
 						trackerData = payload.tracker || {};
+						activityMerge(payload.activity);
 					} else if (payload._type === 'cka-tracker-progress-v1') {
 						trackerData = payload.data || {};
 					} else {
@@ -328,6 +330,11 @@ function App() {
 		})();
 	}, []);
 
+	useEffect(function () {
+		// streak.js ran before React mounted #streak-widget — paint it now.
+		renderStreak();
+	}, []);
+
 	useEffect(
 		function () {
 			if (!mounted.current) {
@@ -369,6 +376,8 @@ function App() {
 	}, []); // empty deps intentional — continueStudying uses stable refs
 
 	function toggleDone(id) {
+		// Ticking counts towards the streak; un-ticking never takes a day back.
+		if (!doneRef.current[id]) activityBump(1);
 		setDone(function (previous) {
 			return { ...previous, [id]: !previous[id] };
 		});
@@ -583,6 +592,8 @@ function App() {
 					</span>
 					<span className="as-flash" id="as-flash"></span>
 				</div>
+				{/* Filled by js/streak.js — React renders no children here. */}
+				<div id="streak-widget" />
 				<div
 					style={{
 						background: theme.bgTer,

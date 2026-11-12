@@ -125,6 +125,7 @@ async function manualExport() {
 					saved: new Date().toISOString(),
 					tracker: trackerData,
 					tasks: done,
+					activity: activityRead(),
 				},
 				null,
 				2
@@ -151,6 +152,7 @@ function manualImport(evt) {
 
 			if (p._type === SHARED_MARKER) {
 				tasksData = p.tasks || {};
+				activityMerge(p.activity);
 			} else if (p._type === 'cka-tasks-progress-v1') {
 				tasksData = p.data || {};
 			} else {
@@ -444,6 +446,7 @@ function buildPanels() {
 			doneBtn.dataset.taskid = task.id;
 			doneBtn.onclick = () => {
 				done[task.id] = !done[task.id];
+				if (done[task.id]) activityBump(1);
 				autoSave();
 				doneBtn.className = 'done-btn' + (done[task.id] ? ' marked' : '');
 				doneBtn.textContent = done[task.id] ? '✓ Completed' : 'Mark as completed';
@@ -923,7 +926,9 @@ function showExamResults(marked, ids, usedMs, timedOut) {
 	saveBtn.textContent = `Save ${marked.length} to my progress`;
 	saveBtn.disabled = marked.length === 0;
 	saveBtn.onclick = () => {
+		const newlyDone = marked.filter((id) => !done[id]).length;
 		marked.forEach((id) => (done[id] = true));
+		if (newlyDone) activityBump(newlyDone);
 		autoSave();
 		refreshAllButtons();
 		updateOverall();
