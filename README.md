@@ -64,6 +64,7 @@ That is all. Nothing else to configure.
 Things to know:
 
 - **One account.** `CKA_USER` / `CKA_PASSWORD` in `.env` are the only login. There is no registration and no email.
+- **LAN access without a proxy:** set `CKA_BIND=0.0.0.0` in `.env`. That is plain HTTP, so only do it on a network you trust.
 - **HTTPS is your proxy's job.** The app speaks plain HTTP on localhost. The proxy must send `X-Forwarded-Proto` and `X-Forwarded-For`.
 - **Signing in is optional.** Signed out, the app behaves exactly like the static site.
 - **Data** lives in the `cka-data` volume as one JSON file. Back it up by copying that volume.
