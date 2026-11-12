@@ -1,5 +1,5 @@
 // CKA Quiz — page logic
-// Depends on: js/autosave.js (activityBump), data/exam-domains.js, data/quiz-data.js
+// Depends on: js/autosave.js (activityBump), data/exam-domains.js, data/quiz-data*.js
 
 const QUIZ_KEY = 'cka-quiz';
 const ROUND_SIZE = 5;
@@ -130,6 +130,7 @@ function renderQuestion() {
 	card.appendChild(bar);
 
 	card.appendChild(quizEl('div', 'quiz-question', item.question.q));
+	if (item.question.code) card.appendChild(quizEl('pre', 'quiz-code', item.question.code));
 
 	const list = quizEl('div', 'quiz-options');
 	item.options.forEach((option, i) => {

@@ -1,5 +1,6 @@
 // Quiz questions — shared by the quiz page. One correct answer (`answer`, an
 // index into `options`) plus a one-line `why` shown right after answering.
+// More questions live in quiz-data-<domain>.js and are added with QUIZ.push().
 // `domain` is an EXAM_DOMAINS id. Keep `id` values stable: they are stored in
 // localStorage to remember which questions were missed.
 const QUIZ = [
@@ -578,3 +579,12 @@ const QUIZ = [
 		why: 'Raise the memory limit, or fix the leak. Exit code 137 is the same signal.',
 	},
 ];
+
+// Compact way to write a question: the correct option first, then the wrong
+// ones. The quiz shuffles the options on screen, so the order here is free.
+// `code` (optional) is a snippet shown under the question, e.g. a manifest.
+function quizQ(id, domain, q, correct, wrong, why, code) {
+	const question = { id, domain, q, options: [correct, ...wrong], answer: 0, why };
+	if (code) question.code = code;
+	return question;
+}
