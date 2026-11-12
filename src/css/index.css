@@ -89,7 +89,7 @@ html.dark .version-banner {
 /* Cards */
 .cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 	gap: 16px;
 	margin-bottom: 48px;
 }
@@ -134,7 +134,6 @@ html.dark .card:hover {
 }
 
 .card.green {
-	grid-column: 1 / -1;
 	border-top-color: #4ade80;
 }
 
