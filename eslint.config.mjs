@@ -47,7 +47,7 @@ export default [
 	js.configs.recommended,
 	// Build script — Node.js ESM.
 	{
-		files: ['build.mjs'],
+		files: ['build.mjs', 'server/**/*.mjs'],
 		languageOptions: {
 			ecmaVersion: 2022,
 			sourceType: 'module',
@@ -107,6 +107,23 @@ export default [
 			// vars:'local' suppresses "assigned but never used" for intentional global exports.
 			'no-unused-vars': [noUnusedVars[0], { ...noUnusedVars[1], vars: 'local' }],
 		},
+	},
+	// Server sync client — IIFE, only shipped in the server-backed build.
+	{
+		files: ['src/js/server-sync.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'script',
+			globals: {
+				...globals.browser,
+				...globals.es2022,
+				activityMerge: 'readonly',
+				activityRead: 'readonly',
+				mirrorRead: 'readonly',
+				mirrorWrite: 'readonly',
+			},
+		},
+		rules: { 'no-unused-vars': noUnusedVars },
 	},
 	// Streak widget — defines renderStreak, consumes the activity log from autosave.js.
 	{

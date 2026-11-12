@@ -77,6 +77,12 @@ const SHARED_MARKER = 'cka-progress-v1';
 // `pending` marks a section changed locally but not yet written to the file.
 const MIRROR_KEY = 'cka-progress';
 
+// Hook for the server-backed build (js/server-sync.js). That file is not part
+// of the static build, so there this is a no-op.
+function serverChanged() {
+	if (window.ckaServerChanged) window.ckaServerChanged();
+}
+
 function mirrorLoad() {
 	try {
 		const p = JSON.parse(localStorage.getItem(MIRROR_KEY));
@@ -104,6 +110,7 @@ function mirrorWrite(section, data, pending) {
 	} catch {
 		/* storage full or disabled — the save file is still the backstop */
 	}
+	serverChanged();
 }
 
 // ── Activity log ─────────────────────────────────────────────────────────────
@@ -133,6 +140,7 @@ function activitySave(activity) {
 	// Every change to the log — a tick, an import, a save-file merge — goes
 	// through here, so this is the one place the widget needs repainting from.
 	if (window.renderStreak) window.renderStreak();
+	serverChanged();
 }
 
 // Keeps the higher count per day, so merging can never erase a study day.

@@ -7,3 +7,7 @@ npm-debug.log*
 Thumbs.db
 
 deploy.sh
+
+# Server-backed variant: local data and credentials
+server/data/
+.env

@@ -9,7 +9,7 @@ A **fully static, local-only** study site for the Certified Kubernetes Administr
 - **Study Tracker** (`cka-tracker.html`) — React (bundled via esbuild) + localStorage persistence. Covers the syllabus in 9 teaching sections with topics, cheatsheet commands, ADHD tips, and progress tracking. Note the exam itself grades **5 weighted domains**, not 9 — each section carries a `domain` key mapping it to one, and the tracker reports weighted "exam readiness" from that. See `EXAM_DOMAINS` in `src/data/exam-domains.js` (shared with the practice tasks page, whose "Pick for me" button uses the same weights).
 - **Practice Tasks** (`cka-practice-tasks.html`) — Vanilla JS IIFE. Step-by-step exam-style tasks with copy-ready commands, hints, and difficulty ratings.
 
-There is **no backend, no server, no API, no authentication**. All state lives in `localStorage`. Never add a server-side component, database, or external API dependency.
+The official build has **no backend, no server, no API, no authentication**. All state lives in `localStorage`. Never add a server dependency, database, or external API to it. The one exception is the opt-in **server-backed variant** (see below), which must stay fully separable from the static build.
 
 ## ADHD-first design principles
 
@@ -55,6 +55,8 @@ src/                   source files (edit these)
     autosave.js        localStorage-based autosave helper, shared across all pages
     streak.js          daily goal + weekly streak widget, shared across tracker and tasks
     pomodoro.js        floating Pomodoro timer widget, shared across all pages
+    server-sync.js     login + sync client — server-backed build only
+server/                optional self-hosted server (server.mjs), see "Server-backed variant"
 cluster/               local practice-cluster toolkit (kind-based, see cluster/README.md)
   setup.sh / setup.ps1     create the 2-node cluster + addons (Bash / PowerShell)
   reset.sh / reset.ps1     wipe and rebuild a clean cluster
@@ -168,6 +170,15 @@ Optional auto-save to a real `.json` file uses the File System Access API
 Chrome resets a stored handle's permission to `prompt` between sessions, so the
 one-click "Re-enable" step on a new visit is unavoidable — it is the browser's
 model, not something the app can cache.
+
+### Server-backed variant (optional, self-hosted)
+
+`npm run build:server` (`CKA_SERVER=1`) ships two extra files, `src/js/server-sync.js` and `src/css/server-sync.css`, and injects their tags into the tracker and tasks pages. The plain `npm run build` deletes them from `dist/`, so the static build contains no `fetch` call. Keep it that way: **all network code lives in `server-sync.js`**; shared files may only call the no-op hook `serverChanged()` in `autosave.js`.
+
+- `server/server.mjs` — zero-dependency Node server: serves `dist/` and the API (`api/login`, `api/logout`, `api/progress`). One account from `CKA_USER` / `CKA_PASSWORD`; no registration. State is one JSON file in `DATA_DIR`.
+- Sync model: the server is a second sync target, like the save file. Local changes are pushed with the revision they were based on; a stale push gets `409` and both copies are merged (a done flag on either side wins, activity keeps the higher count). Signed out, nothing differs from the static site.
+- API paths in the client are relative (`api/…`) so the app works under a proxy sub-path.
+- `Dockerfile` + `compose.yaml` are the supported deployment; HTTPS is left to the user's reverse proxy.
 
 ### Pomodoro widget (pomodoro.js)
 

@@ -1,0 +1,96 @@
+/* Sign-in pill and panel — only shipped in the server-backed build. */
+#server-pill {
+	position: fixed;
+	top: 14px;
+	left: 14px;
+	z-index: 900;
+	border: 0.5px solid rgba(0, 0, 0, 0.15);
+	border-radius: 99px;
+	background: #fff;
+	color: #4a4a46;
+	font-size: 12px;
+	padding: 6px 12px;
+	cursor: pointer;
+}
+
+#server-pill.signed-in {
+	color: #15803d;
+}
+
+html.dark #server-pill {
+	background: #252522;
+	border-color: rgba(255, 255, 255, 0.15);
+	color: #b0ada3;
+}
+
+html.dark #server-pill.signed-in {
+	color: #4ade80;
+}
+
+#server-panel {
+	position: fixed;
+	top: 50px;
+	left: 14px;
+	z-index: 900;
+	width: 250px;
+	border: 0.5px solid rgba(0, 0, 0, 0.15);
+	border-radius: 10px;
+	background: #fff;
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+	padding: 14px;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+html.dark #server-panel {
+	background: #252522;
+	border-color: rgba(255, 255, 255, 0.15);
+}
+
+#server-panel p {
+	margin-bottom: 10px;
+}
+
+#server-panel form {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+#server-panel input {
+	border: 0.5px solid rgba(0, 0, 0, 0.25);
+	border-radius: 6px;
+	background: transparent;
+	color: inherit;
+	font-size: 13px;
+	padding: 7px 9px;
+}
+
+html.dark #server-panel input {
+	border-color: rgba(255, 255, 255, 0.25);
+}
+
+#server-panel button {
+	border: 0;
+	border-radius: 6px;
+	background: #2563eb;
+	color: #fff;
+	font-size: 13px;
+	padding: 7px 12px;
+	cursor: pointer;
+}
+
+#server-panel button:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+#server-panel .server-error {
+	margin: 0;
+	color: #dc2626;
+	font-size: 12px;
+}
+
+#server-panel .server-error:empty {
+	display: none;
+}

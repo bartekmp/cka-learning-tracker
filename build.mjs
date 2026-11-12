@@ -13,6 +13,12 @@ const __dirname = path.dirname(__filename);
 const srcDir = path.join(__dirname, 'src');
 const distDir = path.join(__dirname, 'dist');
 
+// `CKA_SERVER=1` (npm run build:server) builds the optional server-backed
+// variant: it ships the sync client and wires it into the pages. Without the
+// flag those files are removed, so the static build cannot make network calls.
+const serverBuild = process.env.CKA_SERVER === '1';
+const serverOnlyAssets = ['js/server-sync.js', 'css/server-sync.css'];
+
 await rm(distDir, { recursive: true, force: true });
 await mkdir(distDir, { recursive: true });
 await mkdir(path.join(distDir, 'js'), { recursive: true });
@@ -28,6 +34,23 @@ await Promise.all([
     cp(path.join(srcDir, 'robots.txt'), path.join(distDir, 'robots.txt')),
     cp(path.join(srcDir, 'favicon.svg'), path.join(distDir, 'favicon.svg')),
 ]);
+
+if (serverBuild) {
+    const syncTags = {
+        '</head>': '\t<link rel="stylesheet" href="css/server-sync.css" />\n\t</head>',
+        '</body>': '\t<script src="js/server-sync.js"></script>\n\t</body>',
+    };
+    for (const page of ['cka-tracker.html', 'cka-practice-tasks.html']) {
+        const pagePath = path.join(distDir, page);
+        let html = await readFile(pagePath, 'utf8');
+        for (const [anchor, replacement] of Object.entries(syncTags)) {
+            html = html.replace(anchor, replacement);
+        }
+        await writeFile(pagePath, html);
+    }
+} else {
+    await Promise.all(serverOnlyAssets.map((file) => rm(path.join(distDir, file))));
+}
 
 await build({
     entryPoints: [path.join(srcDir, 'js', 'tracker.js')],
