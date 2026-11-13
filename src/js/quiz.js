@@ -159,8 +159,16 @@ function quizIsCode(text) {
 	return /^\S+$/.test(text) && (/[./=_]/.test(text) || /^[a-z]+[A-Z]/.test(text));
 }
 
-function quizOptionText(parent, text) {
-	if (quizIsCode(text)) parent.appendChild(quizEl('code', '', text));
+// A snippet with "____" in it is a fill-in-the-blank: the options are what
+// goes in the blank, so they are always shown as code.
+const QUIZ_BLANK = '____';
+
+function quizIsFill(question) {
+	return !!question.code && question.code.includes(QUIZ_BLANK);
+}
+
+function quizOptionText(parent, text, forceCode) {
+	if (forceCode || quizIsCode(text)) parent.appendChild(quizEl('code', '', text));
 	else quizRich(parent, text);
 }
 
@@ -236,7 +244,16 @@ function renderQuestion() {
 	const questionEl = quizEl('div', 'quiz-question');
 	quizRich(questionEl, item.question.q);
 	card.appendChild(questionEl);
-	if (item.question.code) card.appendChild(quizEl('pre', 'quiz-code', item.question.code));
+	round.blank = null;
+	if (quizIsFill(item.question)) {
+		const [before, after] = item.question.code.split(QUIZ_BLANK);
+		const pre = quizEl('pre', 'quiz-code');
+		round.blank = quizEl('span', 'quiz-blank', QUIZ_BLANK);
+		pre.append(before, round.blank, after);
+		card.appendChild(pre);
+	} else if (item.question.code) {
+		card.appendChild(quizEl('pre', 'quiz-code', item.question.code));
+	}
 
 	const guess = quizEl('button', 'quiz-guess', '🎲 Just guessing (G)');
 	guess.type = 'button';
@@ -249,7 +266,7 @@ function renderQuestion() {
 		btn.type = 'button';
 		btn.appendChild(quizEl('span', 'quiz-key', 'ABCD'[i]));
 		const label = quizEl('span', 'quiz-text');
-		quizOptionText(label, option.text);
+		quizOptionText(label, option.text, quizIsFill(item.question));
 		btn.appendChild(label);
 		btn.onclick = () => answer(i);
 		list.appendChild(btn);
@@ -278,6 +295,11 @@ function answer(optionIndex) {
 	if (chosen.correct) round.correct++;
 	// A lucky guess counts as correct but comes back like a miss.
 	if (!chosen.correct || round.guess) round.missed.push(item);
+
+	if (round.blank) {
+		round.blank.textContent = item.options.find((o) => o.correct).text;
+		round.blank.classList.add('filled');
+	}
 
 	const buttons = document.querySelectorAll('.quiz-option');
 	buttons.forEach((btn, i) => {

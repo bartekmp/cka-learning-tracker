@@ -306,3 +306,20 @@ html.dark .quiz-card code {
 	background: rgba(217, 119, 6, 0.15);
 	opacity: 1;
 }
+
+.quiz-blank {
+	display: inline-block;
+	min-width: 5ch;
+	padding: 0 4px;
+	text-align: center;
+	border-bottom: 2px dashed #2563eb;
+	border-radius: 3px;
+	color: #2563eb;
+	font-weight: 700;
+}
+
+.quiz-blank.filled {
+	border-bottom-style: solid;
+	background: rgba(22, 163, 74, 0.18);
+	color: #15803d;
+}
