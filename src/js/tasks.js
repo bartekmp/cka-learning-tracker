@@ -346,6 +346,10 @@ function buildPanels() {
 			pill.className = 'pill ' + diffClass;
 			pill.textContent = task.difficulty;
 			metaEl.appendChild(pill);
+			const timePill = document.createElement('span');
+			timePill.className = 'pill';
+			timePill.textContent = '~' + taskMinutes(task) + ' min';
+			metaEl.appendChild(timePill);
 			const tagPill = document.createElement('span');
 			const isOptional = task.tag === 'optional';
 			tagPill.className = 'pill tag-' + (isOptional ? 'optional' : 'essential');
@@ -559,6 +563,12 @@ function jumpToTask(sectionIdx, taskId) {
 // ── Review queue ─────────────────────────────────────────────────────────────
 // Opening a solution means the task was not solid yet, so it comes back after
 // REVIEW_DAYS. Stored in this browser only: it is a nudge, not progress.
+// Rough time to finish a task: about 1.5 minutes per step, never under 3.
+// An estimate only. It fights "time blindness": you see the size before you start.
+function taskMinutes(task) {
+	return Math.max(3, Math.round(task.steps.length * 1.5));
+}
+
 const REVIEW_KEY = 'cka-review';
 const REVIEW_DAYS = 2;
 
