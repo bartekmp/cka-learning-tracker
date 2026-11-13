@@ -360,7 +360,6 @@ QUIZ.push(
 	),
 
 	// ── Cluster Architecture, Installation & Configuration ────────────────────
-	// t15 — etcd
 
 	// t33 — kubeadm upgrade
 	quizQ(
@@ -433,32 +432,6 @@ QUIZ.push(
 		['Only in the subject’s own namespace', 'In no namespace', 'Only in kube-system'],
 		'ClusterRole + ClusterRoleBinding = cluster-wide.'
 	),
-
-	// t17 — securityContext
-
-	// t35 — CSR
-	quizQ(
-		'var-t35-deny',
-		'arch',
-		'Which command rejects a pending CertificateSigningRequest?',
-		'kubectl certificate deny <name>',
-		[
-			'kubectl certificate reject <name>',
-			'kubectl delete csr <name> --deny',
-			'kubectl certificate revoke <name>',
-		],
-		'approve and deny are the two decisions.'
-	),
-	quizQ(
-		'var-t35-usages',
-		'arch',
-		'A CSR for a user certificate (client login) needs which usage in its spec?',
-		'client auth',
-		['server auth', 'digital signature only', 'cert sign'],
-		'Together with signerName: kubernetes.io/kube-apiserver-client.'
-	),
-
-	// t52 — admission policy
 
 	// t44 — kustomize
 	quizQ(

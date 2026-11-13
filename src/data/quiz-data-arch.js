@@ -292,18 +292,6 @@ QUIZ.push(
 		'Since v1.24 ServiceAccounts no longer get a long-lived Secret token automatically.'
 	),
 	quizQ(
-		'arch-csr-approve',
-		'arch',
-		'Which command approves a pending CertificateSigningRequest called jane-csr?',
-		'kubectl certificate approve jane-csr',
-		[
-			'kubectl approve csr jane-csr',
-			'kubectl patch csr jane-csr --approve',
-			'kubectl apply csr jane-csr',
-		],
-		'Afterwards read the issued certificate from `.status.certificate`.'
-	),
-	quizQ(
 		'arch-use-context',
 		'arch',
 		'Which command switches kubectl to another cluster context?',

@@ -423,15 +423,6 @@ ____:
 		'A RoleBinding grants only inside its own namespace, even for a ClusterRole.',
 		'kubectl create ____ vault-secret-reader --clusterrole=secret-reader --serviceaccount=tools:vault'
 	),
-	quizQ(
-		'fill-t35-csr-approve',
-		'arch',
-		'Fill the blank: approve the pending CertificateSigningRequest.',
-		'approve',
-		['sign', 'accept', 'grant'],
-		'kubectl certificate approve <csr>. The signed cert then appears in .status.certificate.',
-		'kubectl certificate ____ dev-jane'
-	),
 
 	// ── Services & Networking ─────────────────────────────────────────────────
 	quizQ(
