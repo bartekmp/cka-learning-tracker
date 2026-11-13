@@ -1597,48 +1597,6 @@ const SECTIONS = [
 				note: 'kubectl auth can-i is the fastest way to debug RBAC during the exam.',
 			},
 			{
-				id: 't17',
-				tag: 'optional',
-				title: 'Apply a Security Context',
-				difficulty: 'easy',
-				scenario:
-					'Create a pod named secure running busybox that: runs as user ID 1000, has a read-only root filesystem, and drops ALL Linux capabilities. Verify with exec.',
-				steps: [
-					{
-						label: 'Step 1 — generate base YAML',
-						desc: '',
-						code: [
-							'kubectl run secure --image=busybox --dry-run=client -o yaml -- sleep 3600 > secure.yaml',
-						],
-					},
-					{
-						label: 'Step 2 — add securityContext to the container',
-						desc: 'Under containers[0], add:',
-						code: [
-							'securityContext:\n  runAsUser: 1000\n  readOnlyRootFilesystem: true\n  capabilities:\n    drop:\n    - ALL',
-						],
-					},
-					{
-						label: 'Step 3 — apply it',
-						desc: '',
-						code: ['kubectl apply -f secure.yaml'],
-					},
-					{
-						label: 'Step 4 — verify user',
-						desc: '',
-						code: ['kubectl exec secure -- whoami', 'kubectl exec secure -- id'],
-					},
-					{
-						label: 'Step 5 — verify read-only filesystem',
-						desc: '',
-						code: ['kubectl exec secure -- touch /testfile  # should fail'],
-					},
-				],
-				expected:
-					'whoami returns an ID of 1000. touch /testfile fails with Read-only file system error.',
-				note: 'Pod-level securityContext applies to all containers. Container-level overrides the pod-level.',
-			},
-			{
 				id: 't18',
 				tag: 'essential',
 				title: 'Write a Network Policy',
@@ -1782,73 +1740,6 @@ const SECTIONS = [
 				expected:
 					'CSR moves from Pending → Approved,Issued. dev-jane.crt is a valid certificate with CN=dev-jane.',
 				note: 'After getting the cert, you would create a kubeconfig entry using: kubectl config set-credentials dev-jane --client-key=dev-jane.key --client-certificate=dev-jane.crt',
-			},
-			{
-				id: 't52',
-				tag: 'optional',
-				title: 'Enforce a rule with ValidatingAdmissionPolicy',
-				difficulty: 'hard',
-				scenario:
-					'Block any Deployment with more than 5 replicas, without running an admission webhook. Write a ValidatingAdmissionPolicy with a CEL expression, bind it to a namespace, and prove it rejects.',
-				steps: [
-					{
-						label: 'Step 1 — create a namespace to scope the policy to',
-						desc: '',
-						code: [
-							'kubectl create namespace policed',
-							'kubectl label namespace policed policy=strict',
-						],
-					},
-					{
-						label: 'Step 2 — write the policy',
-						desc: 'validations use CEL. object is the incoming resource.',
-						code: [
-							'kubectl apply -f - <<EOF\napiVersion: admissionregistration.k8s.io/v1\nkind: ValidatingAdmissionPolicy\nmetadata:\n  name: max-replicas\nspec:\n  failurePolicy: Fail\n  matchConstraints:\n    resourceRules:\n      - apiGroups:   ["apps"]\n        apiVersions: ["v1"]\n        operations:  ["CREATE", "UPDATE"]\n        resources:   ["deployments"]\n  validations:\n    - expression: "object.spec.replicas <= 5"\n      message: "Deployments may not have more than 5 replicas."\nEOF',
-						],
-					},
-					{
-						label: 'Step 3 — bind it',
-						desc: 'A policy does nothing until a binding says where it applies. Without the binding this silently passes.',
-						code: [
-							'kubectl apply -f - <<EOF\napiVersion: admissionregistration.k8s.io/v1\nkind: ValidatingAdmissionPolicyBinding\nmetadata:\n  name: max-replicas-binding\nspec:\n  policyName: max-replicas\n  validationActions: ["Deny"]\n  matchResources:\n    namespaceSelector:\n      matchLabels:\n        policy: strict\nEOF',
-						],
-					},
-					{
-						label: 'Step 4 — prove it rejects',
-						desc: 'Expect the create to fail with your message.',
-						code: [
-							'kubectl create deployment big --image=nginx --replicas=9 -n policed',
-						],
-					},
-					{
-						label: 'Step 5 — prove it allows what it should',
-						desc: '',
-						code: [
-							'kubectl create deployment small --image=nginx --replicas=3 -n policed',
-							'kubectl get deploy -n policed',
-						],
-					},
-					{
-						label: 'Step 6 — confirm other namespaces are untouched',
-						desc: 'The namespaceSelector means default is not covered.',
-						code: [
-							'kubectl create deployment big --image=nginx --replicas=9',
-							'kubectl delete deployment big',
-						],
-					},
-					{
-						label: 'Step 7 — clean up',
-						desc: '',
-						code: [
-							'kubectl delete validatingadmissionpolicybinding max-replicas-binding',
-							'kubectl delete validatingadmissionpolicy max-replicas',
-							'kubectl delete namespace policed',
-						],
-					},
-				],
-				expected:
-					'The 9-replica Deployment in policed is rejected with "Deployments may not have more than 5 replicas.", the 3-replica one is created, and the same 9-replica Deployment succeeds in default.',
-				note: 'This is the in-tree replacement for validating webhooks — no cert, no service, no pod to keep alive. validationActions can be Deny, Warn or Audit; Warn is the safe way to roll a policy out before enforcing it.',
 			},
 		],
 	},
@@ -2006,74 +1897,6 @@ const SECTIONS = [
 				expected:
 					'PVC and auto-created PV both show Bound. Pod is Running. No manual PV was created.',
 				note: 'WaitForFirstConsumer delays binding until a pod is scheduled, so the PV is created on the same node the pod lands on — important for local storage.',
-			},
-			{
-				id: 't51',
-				tag: 'optional',
-				title: 'Snapshot a PVC and restore it',
-				difficulty: 'hard',
-				scenario:
-					'Take a VolumeSnapshot of a PVC that holds data, delete the data, then restore it into a brand new PVC using the snapshot as a dataSource.',
-				steps: [
-					{
-						label: 'Step 1 — check the cluster can do snapshots',
-						desc: 'Needs the snapshot CRDs, the snapshot controller, and a CSI driver that supports them. kind ships this with the csi-hostpath driver.',
-						code: [
-							'kubectl get volumesnapshotclass',
-							'kubectl get crd | grep snapshot',
-						],
-					},
-					{
-						label: 'Step 2 — create a PVC and write data into it',
-						desc: '',
-						code: [
-							'kubectl apply -f - <<EOF\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data-pvc\nspec:\n  accessModes: ["ReadWriteOnce"]\n  resources:\n    requests:\n      storage: 1Gi\nEOF',
-							'kubectl run writer --image=busybox:1.28 --restart=Never --overrides=\'{"spec":{"containers":[{"name":"writer","image":"busybox:1.28","command":["sh","-c","echo hello-snapshot > /data/file.txt; sleep 3600"],"volumeMounts":[{"name":"d","mountPath":"/data"}]}],"volumes":[{"name":"d","persistentVolumeClaim":{"claimName":"data-pvc"}}]}}\'',
-						],
-					},
-					{
-						label: 'Step 3 — take the snapshot',
-						desc: 'source is the live PVC.',
-						code: [
-							'kubectl apply -f - <<EOF\napiVersion: snapshot.storage.k8s.io/v1\nkind: VolumeSnapshot\nmetadata:\n  name: data-snap\nspec:\n  volumeSnapshotClassName: <snapshot-class>\n  source:\n    persistentVolumeClaimName: data-pvc\nEOF',
-						],
-					},
-					{
-						label: 'Step 4 — wait until it is usable',
-						desc: 'Never restore from a snapshot whose readyToUse is false.',
-						code: [
-							"kubectl get volumesnapshot data-snap -o jsonpath='{.status.readyToUse}'",
-							'kubectl describe volumesnapshot data-snap',
-						],
-					},
-					{
-						label: 'Step 5 — restore into a new PVC',
-						desc: 'dataSource points at the snapshot instead of provisioning empty storage.',
-						code: [
-							'kubectl apply -f - <<EOF\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: restored-pvc\nspec:\n  dataSource:\n    name: data-snap\n    kind: VolumeSnapshot\n    apiGroup: snapshot.storage.k8s.io\n  accessModes: ["ReadWriteOnce"]\n  resources:\n    requests:\n      storage: 1Gi\nEOF',
-						],
-					},
-					{
-						label: 'Step 6 — verify the restored data',
-						desc: 'Mount the restored PVC and read the file back.',
-						code: [
-							'kubectl run reader --image=busybox:1.28 --restart=Never --overrides=\'{"spec":{"containers":[{"name":"reader","image":"busybox:1.28","command":["cat","/data/file.txt"],"volumeMounts":[{"name":"d","mountPath":"/data"}]}],"volumes":[{"name":"d","persistentVolumeClaim":{"claimName":"restored-pvc"}}]}}\'',
-							'kubectl logs reader',
-						],
-					},
-					{
-						label: 'Step 7 — clean up',
-						desc: '',
-						code: [
-							'kubectl delete pod writer reader --ignore-not-found',
-							'kubectl delete volumesnapshot data-snap',
-							'kubectl delete pvc data-pvc restored-pvc',
-						],
-					},
-				],
-				expected:
-					'kubectl logs reader prints hello-snapshot, read from a PVC that was created entirely from the snapshot.',
-				note: 'Three objects are involved: VolumeSnapshotClass (how to snapshot), VolumeSnapshot (your request), VolumeSnapshotContent (the actual snapshot, cluster-scoped). If readyToUse never turns true, describe the VolumeSnapshotContent — the error is almost always there rather than on the VolumeSnapshot.',
 			},
 		],
 	},
