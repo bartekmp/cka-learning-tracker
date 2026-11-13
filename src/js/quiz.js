@@ -229,8 +229,15 @@ function renderQuestion() {
 
 	const card = quizEl('div', 'quiz-card');
 	const head = quizEl('div', 'quiz-head');
+	// About 20 seconds a question. Shows how little is left, not how much is done.
+	const left = round.items.length - round.index;
+	const timeLeft = left === 1 ? 'last one' : `~${Math.ceil((left * 20) / 60)} min left`;
 	head.appendChild(
-		quizEl('span', 'quiz-count', `Question ${round.index + 1} / ${round.items.length}`)
+		quizEl(
+			'span',
+			'quiz-count',
+			`Question ${round.index + 1} / ${round.items.length} · ${timeLeft}`
+		)
 	);
 	head.appendChild(quizEl('span', 'quiz-domain', domainTitle(item.question.domain)));
 	card.appendChild(head);
