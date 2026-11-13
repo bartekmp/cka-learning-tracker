@@ -366,17 +366,19 @@ function renderBrowse(statusFilter, page) {
 
 function browseRow(q, status) {
 	const row = quizEl('div', 'quiz-browse-row');
-	const meta = quizEl('div', 'quiz-browse-meta');
-	meta.appendChild(quizEl('span', 'quiz-dot ' + status));
-	meta.appendChild(quizEl('span', '', `#${q.id} · ${domainTitle(q.domain)}`));
-	row.appendChild(meta);
-
-	const question = quizEl('div', 'quiz-question');
+	const head = quizEl('button', 'quiz-browse-head');
+	head.type = 'button';
+	head.appendChild(quizEl('span', 'quiz-dot ' + status));
+	const text = quizEl('span', 'quiz-browse-text');
+	text.appendChild(quizEl('span', 'quiz-browse-meta', `#${q.id} · ${domainTitle(q.domain)}`));
+	const question = quizEl('span', 'quiz-browse-q');
 	quizRich(question, q.q);
-	row.appendChild(question);
+	text.appendChild(question);
+	head.appendChild(text);
+	const chevron = quizEl('span', 'quiz-chevron', '▸');
+	head.appendChild(chevron);
+	row.appendChild(head);
 
-	const reveal = quizEl('button', 'quiz-secondary', 'Show answer');
-	reveal.type = 'button';
 	const answerBox = quizEl('div', 'quiz-feedback ok');
 	answerBox.hidden = true;
 	const correct = q.options[q.answer];
@@ -391,11 +393,11 @@ function browseRow(q, status) {
 	const why = quizEl('div', '', '');
 	quizRich(why, q.why);
 	answerBox.appendChild(why);
-	reveal.onclick = () => {
+	head.onclick = () => {
 		answerBox.hidden = !answerBox.hidden;
-		reveal.textContent = answerBox.hidden ? 'Show answer' : 'Hide answer';
+		chevron.textContent = answerBox.hidden ? '▸' : '▾';
 	};
-	row.append(reveal, answerBox);
+	row.appendChild(answerBox);
 	return row;
 }
 
