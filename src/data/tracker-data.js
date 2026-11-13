@@ -761,18 +761,6 @@ const SECTIONS = [
 				labs: ['KodeKloud: Service Accounts Lab'],
 			},
 			{
-				id: 's6t6',
-				title: 'Security Contexts',
-				tasks: [
-					'Run pod as specific user: securityContext.runAsUser',
-					'Add/drop Linux capabilities in container spec',
-					'Set readOnlyRootFilesystem: true',
-					'Understand pod-level vs container-level context',
-				],
-				cmds: ['kubectl exec <pod> -- whoami', 'kubectl exec <pod> -- id'],
-				labs: ['KodeKloud: Security Contexts Lab'],
-			},
-			{
 				id: 's6t7',
 				title: 'Network Policies',
 				tasks: [
@@ -790,24 +778,6 @@ const SECTIONS = [
 					'KodeKloud: Network Policies Lab',
 					'Killer Coda: NetworkPolicy scenarios (free)',
 				],
-			},
-			{
-				id: 's6t8',
-				title: 'Validating Admission Policy',
-				tasks: [
-					'Know it is the in-tree, webhook-free way to enforce policy (GA since v1.30)',
-					'Understand the pair: ValidatingAdmissionPolicy + ValidatingAdmissionPolicyBinding',
-					'Write a CEL expression, e.g. object.spec.replicas <= 5',
-					'Bind a policy to namespaces with a namespaceSelector',
-					'Use validationActions Warn / Audit / Deny and know the difference',
-					'Test a rejection and read the CEL error message',
-				],
-				cmds: [
-					'kubectl get validatingadmissionpolicy',
-					'kubectl get validatingadmissionpolicybinding',
-					'kubectl explain validatingadmissionpolicy.spec.validations',
-				],
-				labs: ['Task: block Deployments with more than 5 replicas, then prove it rejects'],
 			},
 		],
 	},
@@ -852,26 +822,6 @@ const SECTIONS = [
 				],
 				cmds: ['kubectl get sc', 'kubectl describe sc <n>'],
 				labs: ['KodeKloud: Storage Classes Lab'],
-			},
-			{
-				id: 's7t4',
-				title: 'Volume Snapshots',
-				tasks: [
-					'Know the three objects: VolumeSnapshotClass, VolumeSnapshot, VolumeSnapshotContent',
-					'Create a VolumeSnapshot from an existing PVC',
-					'Restore a new PVC from a snapshot via dataSource',
-					'Check readyToUse on the snapshot before restoring',
-					'Understand that the CSI driver must support snapshots',
-				],
-				cmds: [
-					'kubectl get volumesnapshotclass',
-					'kubectl get volumesnapshot',
-					'kubectl describe volumesnapshot <n>',
-					"kubectl get volumesnapshot <n> -o jsonpath='{.status.readyToUse}'",
-				],
-				labs: [
-					'Task: snapshot a PVC, delete data in the pod, restore into a fresh PVC and verify',
-				],
 			},
 		],
 	},
