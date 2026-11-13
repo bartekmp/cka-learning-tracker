@@ -78,7 +78,13 @@ async function loadSessionSecret() {
 
 await mkdir(DATA_DIR, { recursive: true });
 const sessionSecret = await loadSessionSecret();
-let progress = await readJson(PROGRESS_FILE, { rev: 0, tracker: {}, tasks: {}, activity: {} });
+let progress = await readJson(PROGRESS_FILE, {
+	rev: 0,
+	tracker: {},
+	tasks: {},
+	activity: {},
+	quiz: {},
+});
 
 // ── Sessions ─────────────────────────────────────────────────────────────────
 // The cookie is "<expiry>.<hmac of expiry>". Nothing is stored server-side.
@@ -247,6 +253,11 @@ async function handleSaveProgress(req, res) {
 		sendJson(res, 400, { error: 'tracker, tasks and activity must be objects' });
 		return;
 	}
+	// Optional, so an older client that does not know the quiz can still save.
+	if (body.quiz !== undefined && !isPlainObject(body.quiz)) {
+		sendJson(res, 400, { error: 'quiz must be an object' });
+		return;
+	}
 	if (body.baseRev !== progress.rev) {
 		sendJson(res, 409, progress);
 		return;
@@ -257,6 +268,7 @@ async function handleSaveProgress(req, res) {
 		tracker: body.tracker,
 		tasks: body.tasks,
 		activity: body.activity,
+		quiz: body.quiz || progress.quiz || {},
 	};
 	await writeJson(PROGRESS_FILE, progress);
 	sendJson(res, 200, { rev: progress.rev });

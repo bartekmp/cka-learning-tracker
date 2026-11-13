@@ -51,6 +51,7 @@
 			tracker: sectionData('tracker'),
 			tasks: sectionData('tasks'),
 			activity: activityRead(),
+			quiz: sectionData('quiz'),
 		};
 	}
 
@@ -59,8 +60,14 @@
 		return JSON.stringify(map, Object.keys(map).sort());
 	}
 
-	function docJson(doc) {
+	// What the pages show at load. The quiz is left out: it re-reads its state
+	// on every answer, so a change there never needs a page reload.
+	function pagesJson(doc) {
 		return [sortedJson(doc.tracker), sortedJson(doc.tasks), sortedJson(doc.activity)].join('|');
+	}
+
+	function docJson(doc) {
+		return pagesJson(doc) + '|' + sortedJson(doc.quiz || {});
 	}
 
 	// A done flag set on either side stays set; activity keeps the higher count.
@@ -80,11 +87,25 @@
 		return merged;
 	}
 
+	// The newer answer to a question wins; on the same day the later due date.
+	function mergeQuiz(a, b) {
+		const merged = Object.assign({}, a);
+		Object.keys(b).forEach((id) => {
+			const mine = a[id];
+			const theirs = b[id];
+			if (!mine || theirs.at > mine.at || (theirs.at === mine.at && theirs.due > mine.due)) {
+				merged[id] = theirs;
+			}
+		});
+		return merged;
+	}
+
 	function mergeDocs(a, b) {
 		return {
 			tracker: mergeDone(a.tracker, b.tracker),
 			tasks: mergeDone(a.tasks, b.tasks),
 			activity: mergeActivity(a.activity, b.activity),
+			quiz: mergeQuiz(a.quiz || {}, b.quiz || {}),
 		};
 	}
 
@@ -94,6 +115,7 @@
 		applying = true;
 		mirrorWrite('tracker', doc.tracker, true);
 		mirrorWrite('tasks', doc.tasks, true);
+		mirrorWrite('quiz', doc.quiz || {}, false);
 		activityMerge(doc.activity);
 		applying = false;
 	}
@@ -130,7 +152,7 @@
 	// The pages read progress once, at load — so after the mirror changed
 	// underneath them, reloading is the simple way to show the new state.
 	function reloadIfChanged(before, after) {
-		if (docJson(before) !== docJson(after)) location.reload();
+		if (pagesJson(before) !== pagesJson(after)) location.reload();
 	}
 
 	// Merge the server copy with ours and save the result. Used right after
