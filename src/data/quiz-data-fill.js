@@ -273,37 +273,6 @@ spec:
 		'kubectl drain worker1 ____ --delete-emptydir-data'
 	),
 	quizQ(
-		'fill-t15-snapshot-save',
-		'arch',
-		'Fill the blank: take an etcd backup.',
-		'save',
-		['backup', 'dump', 'export'],
-		'etcdctl snapshot save. (etcdctl backup is an old v2 command.)',
-		'ETCDCTL_API=3 etcdctl snapshot ____ /backup/etcd-snap.db'
-	),
-	quizQ(
-		'fill-t15-restore-datadir',
-		'arch',
-		'Fill the blank: restore the snapshot into a new directory.',
-		'--data-dir',
-		['--target', '--output-dir', '--restore-path'],
-		'Afterwards point etcd.yaml’s --data-dir and its hostPath volume at that directory.',
-		'ETCDCTL_API=3 etcdctl snapshot restore /backup/etcd-snap.db ____=/var/lib/etcd-restored'
-	),
-	quizQ(
-		'fill-t15-etcd-key',
-		'arch',
-		'Fill the blank: the client key flag for etcdctl.',
-		'--key',
-		['--private-key', '--keyfile', '--cert-key'],
-		'etcdctl uses --cacert, --cert and --key.',
-		`ETCDCTL_API=3 etcdctl snapshot save /backup/etcd-snap.db \\
-  --endpoints=https://127.0.0.1:2379 \\
-  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\
-  --cert=/etc/kubernetes/pki/etcd/server.crt \\
-  ____=/etc/kubernetes/pki/etcd/server.key`
-	),
-	quizQ(
 		'fill-t33-upgrade-apply',
 		'arch',
 		'Fill the blank: upgrade the FIRST control plane node.',
@@ -446,20 +415,6 @@ ____:
 		'kubectl auth can-i list pods -n apps --as=____'
 	),
 	quizQ(
-		'fill-t17-read-only-root',
-		'arch',
-		'Fill the blank: the container must not be able to write to its root filesystem.',
-		'readOnlyRootFilesystem',
-		['readOnlyFilesystem', 'immutable', 'readonlyRoot'],
-		'It is a container-level securityContext field. touch /testfile then fails.',
-		`securityContext:
-  runAsUser: 1000
-  ____: true
-  capabilities:
-    drop:
-    - ALL`
-	),
-	quizQ(
 		'fill-t34-clusterrolebinding',
 		'arch',
 		'Fill the blank: let the ServiceAccount read secrets in every namespace.',
@@ -476,28 +431,6 @@ ____:
 		['sign', 'accept', 'grant'],
 		'kubectl certificate approve <csr>. The signed cert then appears in .status.certificate.',
 		'kubectl certificate ____ dev-jane'
-	),
-	quizQ(
-		'fill-t52-vap-expression',
-		'arch',
-		'Fill the blank: allow at most 5 replicas.',
-		'<=',
-		['>=', '=>', '=='],
-		'The expression must be true for the request to pass.',
-		`validations:
-  - expression: "object.spec.replicas ____ 5"
-    message: "Deployments may not have more than 5 replicas."`
-	),
-	quizQ(
-		'fill-t52-vap-deny',
-		'arch',
-		'Fill the blank: reject requests that fail the policy.',
-		'Deny',
-		['Block', 'Reject', 'Fail'],
-		'validationActions accepts Deny, Warn and Audit.',
-		`spec:
-  policyName: max-replicas
-  validationActions: ["____"]`
 	),
 
 	// ── Services & Networking ─────────────────────────────────────────────────
@@ -630,18 +563,6 @@ metadata:
 provisioner: rancher.io/local-path
 ____: WaitForFirstConsumer`
 	),
-	quizQ(
-		'fill-t51-snapshot-kind',
-		'storage',
-		'Fill the blank: restore a new PVC from the snapshot data-snap.',
-		'VolumeSnapshot',
-		['Snapshot', 'PersistentVolumeSnapshot', 'PersistentVolumeClaim'],
-		'dataSource kind VolumeSnapshot with apiGroup snapshot.storage.k8s.io.',
-		`dataSource:
-  name: data-snap
-  kind: ____
-  apiGroup: snapshot.storage.k8s.io`
-	),
 
 	// ── Troubleshooting ───────────────────────────────────────────────────────
 	quizQ(
@@ -659,7 +580,7 @@ ____: WaitForFirstConsumer`
 		'Fill the blank: logs of the container sidecar in a multi-container pod.',
 		'-c',
 		['-n', '-l', '-f'],
-		'Without -c kubectl asks you to pick a container. -n is the namespace.',
+		'-c picks the container. Without it kubectl uses the first one (or the default-container annotation). -n is the namespace.',
 		'kubectl logs multi ____ sidecar'
 	),
 	quizQ(
@@ -721,7 +642,7 @@ ____: WaitForFirstConsumer`
 		'trouble',
 		'Fill the blank: share the process namespace of the container quiet.',
 		'--target',
-		['--attach', '--share', '--container-of'],
+		['--same-pid', '--share', '--container-of'],
 		'The ephemeral container then sees the target’s processes.',
 		'kubectl debug -it quiet --image=busybox:1.28 ____=quiet -- sh'
 	)

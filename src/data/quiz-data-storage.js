@@ -256,14 +256,6 @@ volumeBindingMode: WaitForFirstConsumer`
 		'Drivers run as pods and are registered with CSIDriver objects.'
 	),
 	quizQ(
-		'sto-snapshot',
-		'storage',
-		'Which object takes a point-in-time copy of a PVC (with a CSI driver that supports it)?',
-		'VolumeSnapshot',
-		['PVCBackup', 'StorageCopy', 'PersistentSnapshot'],
-		'Restoring uses a new PVC with the snapshot as dataSource.'
-	),
-	quizQ(
 		'sto-get-all',
 		'storage',
 		'Which command lists PVs and PVCs together?',

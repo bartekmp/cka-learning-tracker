@@ -214,34 +214,6 @@ QUIZ.push(
 		'Upgrade the control plane first, then the nodes.'
 	),
 	quizQ(
-		'arch-etcd-restore-flag',
-		'arch',
-		'When restoring an etcd snapshot, which flag chooses where the restored data goes?',
-		'--data-dir',
-		['--target', '--output-dir', '--restore-path'],
-		'Restoring into a new directory keeps the old data safe until you are sure.'
-	),
-	quizQ(
-		'arch-etcd-restore-manifest',
-		'arch',
-		'You restored etcd into /var/lib/etcd-new. What must you change so the cluster uses it?',
-		'The etcd data hostPath in /etc/kubernetes/manifests/etcd.yaml',
-		[
-			'The API server --etcd-servers flag',
-			'The kubelet config.yaml',
-			'Nothing, etcd finds it automatically',
-		],
-		'etcd runs as a static pod. Point its data volume at the new directory and the kubelet recreates it.'
-	),
-	quizQ(
-		'arch-etcd-status',
-		'arch',
-		'Which command inspects a snapshot file (hash, revision, size)?',
-		'etcdutl snapshot status <file>',
-		['etcdctl snapshot read <file>', 'etcdctl member list', 'kubectl get snapshot'],
-		'Older etcd releases use `etcdctl snapshot status` for the same job.'
-	),
-	quizQ(
 		'arch-etcd-health',
 		'arch',
 		'Which command checks that an etcd endpoint is healthy?',

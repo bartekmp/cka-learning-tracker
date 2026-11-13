@@ -265,22 +265,6 @@ QUIZ.push(
 
 	// t31 / t32 — Job and CronJob
 	quizQ(
-		'var-t31-restart-policy',
-		'workloads',
-		'Which restartPolicy is NOT allowed in a Job’s pod template?',
-		'Always',
-		['Never', 'OnFailure', 'All three are allowed'],
-		'Jobs need pods that can finish: Never or OnFailure.'
-	),
-	quizQ(
-		'var-t32-schedule-daily',
-		'workloads',
-		'Which schedule runs a CronJob every day at 02:30?',
-		'30 2 * * *',
-		['2 30 * * *', '*/30 2 * * *', '30 2 * * 0'],
-		'Fields: minute hour day-of-month month day-of-week.'
-	),
-	quizQ(
 		'var-t32-forbid',
 		'workloads',
 		'CronJob concurrencyPolicy: Forbid. The previous run is still going when the next is due. What happens?',
@@ -377,34 +361,6 @@ QUIZ.push(
 
 	// ── Cluster Architecture, Installation & Configuration ────────────────────
 	// t15 — etcd
-	quizQ(
-		'var-t15-snapshot-status',
-		'arch',
-		'Which etcdctl command shows the hash, revision and key count of a snapshot file?',
-		'etcdctl snapshot status <file>',
-		['etcdctl snapshot save <file>', 'etcdctl snapshot restore <file>', 'etcdctl member list'],
-		'Handy to check a backup before relying on it.'
-	),
-	quizQ(
-		'var-t15-restore-manifest',
-		'arch',
-		'After restoring a snapshot into /var/lib/etcd-restored, what must you change in /etc/kubernetes/manifests/etcd.yaml?',
-		'The --data-dir flag and the hostPath volume path',
-		[
-			'Only the --data-dir flag',
-			'Only the hostPath volume path',
-			'The --listen-client-urls flag',
-		],
-		'Both must point at the new directory, or etcd keeps using the old data.'
-	),
-	quizQ(
-		'var-t15-listen',
-		'arch',
-		'In the etcd static pod manifest, which flag tells you where etcdctl should connect?',
-		'--listen-client-urls',
-		['--data-dir', '--peer-cert-file', '--initial-cluster'],
-		'etcdctl --endpoints must match the client URL; the cert flags in the same file give the cert paths.'
-	),
 
 	// t33 — kubeadm upgrade
 	quizQ(
@@ -479,22 +435,6 @@ QUIZ.push(
 	),
 
 	// t17 — securityContext
-	quizQ(
-		'var-t17-pod-vs-container',
-		'arch',
-		'runAsUser is set to 1000 on the pod and to 2000 on one container. Which user does that container run as?',
-		'2000, the container setting wins',
-		['1000, the pod setting wins', 'Root, they cancel out', 'The pod fails to start'],
-		'Container-level securityContext overrides the pod level.'
-	),
-	quizQ(
-		'var-t17-capabilities-level',
-		'arch',
-		'Where can you set capabilities.drop?',
-		'Only in the container securityContext',
-		['Only in the pod securityContext', 'In both', 'Only in a PodSecurityPolicy'],
-		'capabilities and readOnlyRootFilesystem are container-level fields.'
-	),
 
 	// t35 — CSR
 	quizQ(
@@ -519,22 +459,6 @@ QUIZ.push(
 	),
 
 	// t52 — admission policy
-	quizQ(
-		'var-t52-warn',
-		'arch',
-		'A ValidatingAdmissionPolicyBinding uses validationActions: ["Warn"]. A Deployment violates the rule. Result?',
-		'It is created, and the client sees a warning',
-		['It is rejected', 'It is created silently', 'It is created and scaled to 0'],
-		'Deny rejects, Warn tells the client, Audit only writes to the audit log.'
-	),
-	quizQ(
-		'var-t52-namespace-selector',
-		'arch',
-		'The binding’s namespaceSelector matches policy=strict. A violating Deployment goes into a namespace without that label. Result?',
-		'It is created; the policy does not apply there',
-		['It is rejected', 'It is created with a warning', 'The binding is deleted'],
-		'A policy only acts where a binding selects the object.'
-	),
 
 	// t44 — kustomize
 	quizQ(
@@ -850,22 +774,6 @@ QUIZ.push(
 		['settings', 'app', 'file'],
 		'The file name is the key. Use --from-file=mykey=settings.ini to choose another.'
 	),
-	quizQ(
-		'var-t51-snapshot-source',
-		'storage',
-		'What does a VolumeSnapshot need to point at the PVC it copies?',
-		'source.persistentVolumeClaimName',
-		['spec.claimName', 'spec.dataSource', 'metadata.pvc'],
-		'The restore side uses dataSource on the new PVC instead.'
-	),
-	quizQ(
-		'var-t51-needs-class',
-		'storage',
-		'Snapshots do nothing in a cluster. What is a likely missing piece?',
-		'The snapshot CRDs, controller or a VolumeSnapshotClass',
-		['A StorageClass with Retain', 'A second PVC', 'metrics-server'],
-		'kubectl get crd | grep snapshot and kubectl get volumesnapshotclass.'
-	),
 
 	// ── Troubleshooting ───────────────────────────────────────────────────────
 	// t22 / t41 / t30 / t23 — symptom → cause
@@ -1022,14 +930,14 @@ QUIZ.push(
 	quizQ(
 		'var-t29-no-c',
 		'trouble',
-		'kubectl logs multi on a two-container pod. What happens?',
-		'It asks you to choose a container with -c',
+		'kubectl logs multi on a two-container pod, without -c. What happens?',
+		'It shows the first container’s logs and prints "Defaulted container"',
 		[
-			'It shows both containers’ logs',
-			'It shows the first container’s logs only',
-			'It shows the last restart’s logs',
+			'It fails and asks for -c',
+			'It shows both containers’ logs mixed',
+			'It shows the last container’s logs',
 		],
-		'Use -c <name> or --all-containers.'
+		'The first container (or the one in the kubectl.kubernetes.io/default-container annotation) is used. Use -c or --all-containers for others.'
 	),
 	quizQ(
 		'var-t9-previous-vs-current',

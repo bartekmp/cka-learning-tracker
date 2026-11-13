@@ -48,19 +48,6 @@ const QUIZ = [
 		why: 'It creates a new bootstrap token and prints the full `kubeadm join` line, with the CA hash.',
 	},
 	{
-		id: 'arch-etcd-backup',
-		domain: 'arch',
-		q: 'Which command takes an etcd backup?',
-		options: [
-			'etcdctl snapshot save <file>',
-			'etcdctl backup <file>',
-			'etcdctl export <file>',
-			'etcdctl dump <file>',
-		],
-		answer: 0,
-		why: 'On a TLS-secured etcd you also pass --endpoints, --cacert, --cert and --key.',
-	},
-	{
 		id: 'arch-upgrade-first',
 		domain: 'arch',
 		q: 'You upgrade a control plane node with kubeadm. What comes first?',
