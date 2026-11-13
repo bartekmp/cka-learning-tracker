@@ -36,12 +36,14 @@ await Promise.all([
     cp(path.join(srcDir, 'favicon.svg'), path.join(distDir, 'favicon.svg')),
 ]);
 
+const htmlPages = ['index.html', 'cka-tracker.html', 'cka-practice-tasks.html', 'cka-quiz.html'];
+
 if (serverBuild) {
     const syncTags = {
         '</head>': '\t<link rel="stylesheet" href="css/server-sync.css" />\n\t</head>',
         '</body>': '\t<script src="js/server-sync.js"></script>\n\t</body>',
     };
-    for (const page of ['cka-tracker.html', 'cka-practice-tasks.html']) {
+    for (const page of htmlPages) {
         const pagePath = path.join(distDir, page);
         let html = await readFile(pagePath, 'utf8');
         for (const [anchor, replacement] of Object.entries(syncTags)) {
@@ -233,7 +235,6 @@ async function assetVersion(relPath) {
     return assetVersions.get(relPath);
 }
 
-const htmlPages = ['index.html', 'cka-tracker.html', 'cka-practice-tasks.html', 'cka-quiz.html'];
 await Promise.all(
     htmlPages.map(async (file) => {
         const filePath = path.join(distDir, file);
