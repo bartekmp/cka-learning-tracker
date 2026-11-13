@@ -49,7 +49,7 @@ src/                   source files (edit these)
     exam-domains.js    the 5 weighted exam domains, shared by both pages
     tracker-data.js    all study tracker content (topics, commands, labs, tips)
     tasks-data.js      all practice task content (tasks, steps, hints, commands)
-    quiz-data*.js      quiz questions: quiz-data.js holds the QUIZ array and `quizQ()` helper, one quiz-data-<domain>.js per exam domain adds to it (stable `id`s, optional `code` snippet)
+    quiz-data*.js      quiz questions: quiz-data.js holds the QUIZ array and `quizQ()` helper, one quiz-data-<domain>.js per exam domain adds to it (stable `id`s, optional `code` snippet); `quiz-data-fill.js` holds fill-in-the-blank questions (the `code` contains `____`, options are what goes there) and `quiz-data-variants.js` look-alike variants of practice tasks, both named after the task id
   js/
     tracker.js         React component tree for the tracker page (JSX in a .js file)
     tasks.js           vanilla JS IIFE for the practice tasks page
