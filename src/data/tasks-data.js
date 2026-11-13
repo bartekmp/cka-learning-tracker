@@ -617,12 +617,14 @@ const SECTIONS = [
 					{
 						label: 'Step 6 — try without -c to see the error',
 						desc: 'kubectl logs refuses to guess when multiple containers are present.',
-						code: ['kubectl logs multi  # error: specify -c'],
+						code: [
+							'kubectl logs multi  # first container only ("Defaulted container" notice)',
+						],
 					},
 				],
 				expected:
 					'sidecar logs show timestamps every 3 seconds. web container logs show nginx startup output.',
-				note: "Without -c in a multi-container pod, kubectl logs will error. Always specify -c in the exam when there's more than one container.",
+				note: "Without -c, kubectl logs shows the first container only and prints 'Defaulted container'. Always specify -c when there is more than one container.",
 			},
 			{
 				id: 't30',
@@ -1153,9 +1155,7 @@ const SECTIONS = [
 					{
 						label: 'Step 3 — verify the snapshot',
 						desc: '',
-						code: [
-							'ETCDCTL_API=3 etcdctl snapshot status /backup/etcd-snap.db --write-out=table',
-						],
+						code: ['etcdutl snapshot status /backup/etcd-snap.db --write-out=table'],
 					},
 					{
 						label: 'Step 4 — create something AFTER the backup (to confirm it disappears post-restore)',
@@ -1166,14 +1166,14 @@ const SECTIONS = [
 						label: 'Step 5 — restore to a new data directory',
 						desc: '',
 						code: [
-							'ETCDCTL_API=3 etcdctl snapshot restore /backup/etcd-snap.db \\\n  --data-dir=/var/lib/etcd-restored',
+							'etcdutl snapshot restore /backup/etcd-snap.db \\\n  --data-dir=/var/lib/etcd-restored',
 						],
 					},
 					{
 						label: 'Step 6 — update the etcd static pod to use the new dir',
-						desc: 'Edit the etcd manifest and change --data-dir:',
+						desc: 'Point the etcd-data hostPath volume at the restored directory. Leave --data-dir and mountPath alone: they are paths inside the container.',
 						code: [
-							'vi /etc/kubernetes/manifests/etcd.yaml\n# Change: --data-dir=/var/lib/etcd\n# To:     --data-dir=/var/lib/etcd-restored\n# Also update the hostPath volume path to match',
+							'vi /etc/kubernetes/manifests/etcd.yaml\n# volumes: etcd-data -> hostPath.path\n# Change: /var/lib/etcd\n# To:     /var/lib/etcd-restored',
 						],
 					},
 					{

@@ -487,15 +487,15 @@ const SECTIONS = [
 				tasks: [
 					'⚠ Not tested in the current CKA v1.37 curriculum — deprioritise if short on time',
 					'Take snapshot — memorise all 4 flags (endpoint + 3 certs)',
-					'Verify snapshot: etcdctl snapshot status ... --write-out=table',
+					'Verify snapshot: etcdutl snapshot status ... --write-out=table',
 					'Restore with --data-dir flag pointing to new dir',
-					'Update etcd static pod manifest to use new data dir',
+					'Point the etcd-data hostPath in the etcd static pod manifest at the new dir',
 					'Verify cluster recovers after restore',
 				],
 				cmds: [
 					'ETCDCTL_API=3 etcdctl snapshot save /backup/snap.db \\\n  --endpoints=https://127.0.0.1:2379 \\\n  --cacert=/etc/kubernetes/pki/etcd/ca.crt \\\n  --cert=/etc/kubernetes/pki/etcd/server.crt \\\n  --key=/etc/kubernetes/pki/etcd/server.key',
-					'ETCDCTL_API=3 etcdctl snapshot status /backup/snap.db --write-out=table',
-					'ETCDCTL_API=3 etcdctl snapshot restore /backup/snap.db --data-dir=/var/lib/etcd-new',
+					'etcdutl snapshot status /backup/snap.db --write-out=table',
+					'etcdutl snapshot restore /backup/snap.db --data-dir=/var/lib/etcd-new',
 				],
 				labs: ['KodeKloud: Backup & Restore Lab'],
 			},
@@ -1199,11 +1199,11 @@ const CHEATSHEET = [
 				desc: 'Save snapshot',
 			},
 			{
-				cmd: 'ETCDCTL_API=3 etcdctl snapshot status /backup/snap.db --write-out=table',
+				cmd: 'etcdutl snapshot status /backup/snap.db --write-out=table',
 				desc: 'Verify snapshot',
 			},
 			{
-				cmd: 'ETCDCTL_API=3 etcdctl snapshot restore /backup/snap.db --data-dir=/var/lib/etcd-new',
+				cmd: 'etcdutl snapshot restore /backup/snap.db --data-dir=/var/lib/etcd-new',
 				desc: 'Restore snapshot',
 			},
 		],
