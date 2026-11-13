@@ -211,8 +211,192 @@ function renderStart() {
 	start.type = 'button';
 	start.onclick = startRound;
 	card.appendChild(start);
+
+	const more = quizEl('div', 'quiz-actions');
+	const progress = quizEl('button', 'quiz-secondary', '📊 Progress');
+	progress.type = 'button';
+	progress.onclick = renderProgress;
+	const browse = quizEl('button', 'quiz-secondary', '📚 All questions');
+	browse.type = 'button';
+	browse.onclick = () => renderBrowse('all', 0);
+	more.append(progress, browse);
+	card.appendChild(more);
 	root.appendChild(card);
 	start.focus();
+}
+
+// ── Progress and question list ───────────────────────────────────────────────
+// Where a question stands, from how many times in a row you knew it.
+
+const QUIZ_STATUS = [
+	{ id: 'new', label: 'Untouched', hint: 'never answered' },
+	{ id: 'struggling', label: 'Troublesome', hint: 'last answer was a miss or a guess' },
+	{ id: 'learning', label: 'Learning', hint: 'known 1–2 times in a row' },
+	{ id: 'good', label: 'Good', hint: 'known 3+ times in a row' },
+];
+
+function quizStatus(state, id) {
+	const entry = state[id];
+	if (!entry) return 'new';
+	if (entry.n === 0) return 'struggling';
+	return entry.n < 3 ? 'learning' : 'good';
+}
+
+function quizPool() {
+	return QUIZ.filter((q) => quizDomain === 'all' || q.domain === quizDomain);
+}
+
+function quizDomainChips(onPick) {
+	const chips = quizEl('div', 'quiz-chips');
+	[{ id: 'all', title: 'All domains' }].concat(EXAM_DOMAINS).forEach((d) => {
+		const chip = quizEl(
+			'button',
+			'quiz-chip' + (d.id === quizDomain ? ' active' : ''),
+			d.title
+		);
+		chip.type = 'button';
+		chip.onclick = () => {
+			quizDomain = d.id;
+			onPick();
+		};
+		chips.appendChild(chip);
+	});
+	return chips;
+}
+
+function quizBackButton() {
+	const back = quizEl('button', 'quiz-secondary', '◂ Back');
+	back.type = 'button';
+	back.onclick = renderStart;
+	return back;
+}
+
+function renderProgress() {
+	round = null;
+	const root = document.getElementById('quiz');
+	root.textContent = '';
+	const pool = quizPool();
+	const state = quizRead();
+	const counts = { new: 0, struggling: 0, learning: 0, good: 0 };
+	pool.forEach((q) => counts[quizStatus(state, q.id)]++);
+
+	const card = quizEl('div', 'quiz-card');
+	card.appendChild(quizEl('div', 'quiz-big', 'Progress'));
+	card.appendChild(quizDomainChips(renderProgress));
+
+	const total = pool.length || 1;
+	const stack = quizEl('div', 'quiz-stack');
+	QUIZ_STATUS.forEach((status) => {
+		const part = quizEl('div', 'quiz-stack-part ' + status.id);
+		part.style.width = (counts[status.id] / total) * 100 + '%';
+		stack.appendChild(part);
+	});
+	card.appendChild(stack);
+
+	// Troublesome first: that is what to work on.
+	QUIZ_STATUS.slice()
+		.sort((a, b) => (a.id === 'struggling' ? -1 : b.id === 'struggling' ? 1 : 0))
+		.forEach((status) => {
+			const row = quizEl('button', 'quiz-status-row');
+			row.type = 'button';
+			row.appendChild(quizEl('span', 'quiz-dot ' + status.id));
+			row.appendChild(quizEl('strong', '', `${counts[status.id]} ${status.label}`));
+			row.appendChild(quizEl('span', 'quiz-status-hint', status.hint));
+			row.onclick = () => renderBrowse(status.id, 0);
+			card.appendChild(row);
+		});
+
+	card.appendChild(quizBackButton());
+	root.appendChild(card);
+}
+
+const BROWSE_PAGE = 10;
+
+function renderBrowse(statusFilter, page) {
+	round = null;
+	const root = document.getElementById('quiz');
+	root.textContent = '';
+	const state = quizRead();
+	const list = quizPool().filter(
+		(q) => statusFilter === 'all' || quizStatus(state, q.id) === statusFilter
+	);
+	const pages = Math.max(1, Math.ceil(list.length / BROWSE_PAGE));
+	page = Math.min(page, pages - 1);
+
+	const card = quizEl('div', 'quiz-card');
+	card.appendChild(quizEl('div', 'quiz-big', 'All questions'));
+	card.appendChild(quizDomainChips(() => renderBrowse(statusFilter, 0)));
+
+	const statusChips = quizEl('div', 'quiz-chips');
+	[{ id: 'all', label: 'Any status' }].concat(QUIZ_STATUS).forEach((status) => {
+		const chip = quizEl(
+			'button',
+			'quiz-chip' + (status.id === statusFilter ? ' active' : ''),
+			status.label
+		);
+		chip.type = 'button';
+		chip.onclick = () => renderBrowse(status.id, 0);
+		statusChips.appendChild(chip);
+	});
+	card.appendChild(statusChips);
+
+	list.slice(page * BROWSE_PAGE, (page + 1) * BROWSE_PAGE).forEach((q) => {
+		card.appendChild(browseRow(q, quizStatus(state, q.id)));
+	});
+	if (!list.length) card.appendChild(quizEl('div', 'quiz-sub', 'Nothing here.'));
+
+	const nav = quizEl('div', 'quiz-actions');
+	const prev = quizEl('button', 'quiz-secondary', '◂ Prev');
+	prev.type = 'button';
+	prev.disabled = page === 0;
+	prev.onclick = () => renderBrowse(statusFilter, page - 1);
+	const next = quizEl('button', 'quiz-secondary', 'Next ▸');
+	next.type = 'button';
+	next.disabled = page >= pages - 1;
+	next.onclick = () => renderBrowse(statusFilter, page + 1);
+	nav.append(
+		prev,
+		quizEl('span', 'quiz-page', `${page + 1} / ${pages} · ${list.length} questions`),
+		next
+	);
+	card.appendChild(nav);
+	card.appendChild(quizBackButton());
+	root.appendChild(card);
+}
+
+function browseRow(q, status) {
+	const row = quizEl('div', 'quiz-browse-row');
+	const meta = quizEl('div', 'quiz-browse-meta');
+	meta.appendChild(quizEl('span', 'quiz-dot ' + status));
+	meta.appendChild(quizEl('span', '', `#${q.id} · ${domainTitle(q.domain)}`));
+	row.appendChild(meta);
+
+	const question = quizEl('div', 'quiz-question');
+	quizRich(question, q.q);
+	row.appendChild(question);
+
+	const reveal = quizEl('button', 'quiz-secondary', 'Show answer');
+	reveal.type = 'button';
+	const answerBox = quizEl('div', 'quiz-feedback ok');
+	answerBox.hidden = true;
+	const correct = q.options[q.answer];
+	if (q.code) {
+		const code = quizIsFill(q) ? q.code.replace(QUIZ_BLANK, correct) : q.code;
+		answerBox.appendChild(quizEl('pre', 'quiz-code', code));
+	}
+	const answerLine = quizEl('div', '', '');
+	answerLine.appendChild(quizEl('strong', '', '→ '));
+	quizOptionText(answerLine, correct, quizIsFill(q));
+	answerBox.appendChild(answerLine);
+	const why = quizEl('div', '', '');
+	quizRich(why, q.why);
+	answerBox.appendChild(why);
+	reveal.onclick = () => {
+		answerBox.hidden = !answerBox.hidden;
+		reveal.textContent = answerBox.hidden ? 'Show answer' : 'Hide answer';
+	};
+	row.append(reveal, answerBox);
+	return row;
 }
 
 // ── Question screen ──────────────────────────────────────────────────────────
@@ -236,7 +420,7 @@ function renderQuestion() {
 		quizEl(
 			'span',
 			'quiz-count',
-			`Question ${round.index + 1} / ${round.items.length} · ${timeLeft}`
+			`Question ${round.index + 1} / ${round.items.length} · #${item.question.id} · ${timeLeft}`
 		)
 	);
 	head.appendChild(quizEl('span', 'quiz-domain', domainTitle(item.question.domain)));
