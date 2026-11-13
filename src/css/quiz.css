@@ -287,3 +287,22 @@ html.dark .quiz-card code {
 .quiz-text {
 	min-width: 0;
 }
+
+.quiz-guess {
+	margin: 0 0 10px;
+	padding: 4px 10px;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	border-radius: 999px;
+	background: none;
+	color: inherit;
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	opacity: 0.75;
+}
+
+.quiz-guess.on {
+	border-color: #d97706;
+	background: rgba(217, 119, 6, 0.15);
+	opacity: 1;
+}

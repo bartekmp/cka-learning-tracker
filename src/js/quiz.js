@@ -1,27 +1,65 @@
 // CKA Quiz — page logic
 // Depends on: js/autosave.js (activityBump), data/exam-domains.js, data/quiz-data*.js
 
-const QUIZ_KEY = 'cka-quiz';
+const LEGACY_KEY = 'cka-quiz';
 const ROUND_SIZE = 5;
+// Days until a question comes back, by how many times in a row you knew it.
+// A miss or a guess goes back to the first step.
+const REVIEW_DAYS = [1, 3, 7, 14];
 
-// { questionId: true | false } — result of the last time it was answered.
-let quizResults = {};
 let quizDomain = 'all';
-let round = null; // { items, index, correct, missed, answered }
+let round = null; // { items, index, correct, missed, answered, guess }
 
-function quizLoad() {
-	try {
-		quizResults = JSON.parse(localStorage.getItem(QUIZ_KEY)) || {};
-	} catch {
-		quizResults = {};
-	}
+function addDays(dayKey, days) {
+	const [y, m, d] = dayKey.split('-').map(Number);
+	return activityDayKey(new Date(y, m - 1, d + days, 12));
 }
 
-function quizSave() {
+// Per question: { n: times known in a row, due: 'YYYY-MM-DD', at: last answered }.
+// It lives in the synced progress mirror. It is read fresh every time, so a
+// copy pulled from the server in the background is never overwritten.
+function quizRead() {
+	const saved = mirrorRead('quiz');
+	return saved ? saved.data : {};
+}
+
+function quizRecord(id, correct, guessed) {
+	const today = activityDayKey(new Date());
+	const state = Object.assign({}, quizRead());
+	const known = correct && !guessed;
+	const n = known ? ((state[id] && state[id].n) || 0) + 1 : 0;
+	state[id] = {
+		n,
+		due: addDays(today, REVIEW_DAYS[Math.min(n, REVIEW_DAYS.length - 1)]),
+		at: today,
+	};
+	mirrorWrite('quiz', state, false);
+}
+
+// The first version kept only right/wrong in its own key. Carry that over once.
+function quizMigrate() {
+	let legacy;
 	try {
-		localStorage.setItem(QUIZ_KEY, JSON.stringify(quizResults));
+		legacy = JSON.parse(localStorage.getItem(LEGACY_KEY));
 	} catch {
-		/* storage unavailable — the quiz still works, it just forgets */
+		legacy = null;
+	}
+	if (!legacy) return;
+	const today = activityDayKey(new Date());
+	const state = Object.assign({}, quizRead());
+	Object.keys(legacy).forEach((id) => {
+		if (state[id]) return;
+		state[id] = {
+			n: legacy[id] ? 1 : 0,
+			due: legacy[id] ? addDays(today, 3) : today,
+			at: today,
+		};
+	});
+	mirrorWrite('quiz', state, false);
+	try {
+		localStorage.removeItem(LEGACY_KEY);
+	} catch {
+		/* nothing to clean up */
 	}
 }
 
@@ -34,14 +72,23 @@ function shuffle(list) {
 	return copy;
 }
 
-// Questions you missed come first, then ones you have not seen, then the rest.
+function byDue(state) {
+	return (a, b) => state[a.id].due.localeCompare(state[b.id].due);
+}
+
+// Questions due for review come first (oldest due first), then ones you have
+// not seen, then the rest, soonest due first.
 function pickRound() {
+	const state = quizRead();
+	const today = activityDayKey(new Date());
 	const pool = QUIZ.filter((q) => quizDomain === 'all' || q.domain === quizDomain);
-	const missed = shuffle(pool.filter((q) => quizResults[q.id] === false));
-	const fresh = shuffle(pool.filter((q) => quizResults[q.id] === undefined));
-	const known = shuffle(pool.filter((q) => quizResults[q.id] === true));
-	return missed
-		.concat(fresh, known)
+	const due = shuffle(pool.filter((q) => state[q.id] && state[q.id].due <= today)).sort(
+		byDue(state)
+	);
+	const fresh = shuffle(pool.filter((q) => !state[q.id]));
+	const later = pool.filter((q) => state[q.id] && state[q.id].due > today).sort(byDue(state));
+	return due
+		.concat(fresh, later)
 		.slice(0, ROUND_SIZE)
 		.map((q) => ({
 			question: q,
@@ -124,8 +171,10 @@ function renderStart() {
 	root.textContent = '';
 
 	const pool = QUIZ.filter((q) => quizDomain === 'all' || q.domain === quizDomain);
-	const known = pool.filter((q) => quizResults[q.id] === true).length;
-	const missed = pool.filter((q) => quizResults[q.id] === false).length;
+	const state = quizRead();
+	const today = activityDayKey(new Date());
+	const seen = pool.filter((q) => state[q.id]);
+	const due = seen.filter((q) => state[q.id].due <= today).length;
 
 	const card = quizEl('div', 'quiz-card');
 	card.appendChild(quizEl('div', 'quiz-big', `${ROUND_SIZE} quick questions`));
@@ -147,7 +196,7 @@ function renderStart() {
 	});
 	card.appendChild(chips);
 
-	const stats = `✓ ${known} known · ${missed} to revisit · ${pool.length - known - missed} new`;
+	const stats = `${due} due · ${seen.length - due} on track · ${pool.length - seen.length} new`;
 	card.appendChild(quizEl('div', 'quiz-stats', stats));
 
 	const start = quizEl('button', 'quiz-primary', '▶ Start');
@@ -161,7 +210,7 @@ function renderStart() {
 // ── Question screen ──────────────────────────────────────────────────────────
 
 function startRound() {
-	round = { items: pickRound(), index: 0, correct: 0, missed: [], answered: false };
+	round = { items: pickRound(), index: 0, correct: 0, missed: [], answered: false, guess: false };
 	renderQuestion();
 }
 
@@ -189,6 +238,11 @@ function renderQuestion() {
 	card.appendChild(questionEl);
 	if (item.question.code) card.appendChild(quizEl('pre', 'quiz-code', item.question.code));
 
+	const guess = quizEl('button', 'quiz-guess', '🎲 Just guessing (G)');
+	guess.type = 'button';
+	guess.onclick = toggleGuess;
+	card.appendChild(guess);
+
 	const list = quizEl('div', 'quiz-options');
 	item.options.forEach((option, i) => {
 		const btn = quizEl('button', 'quiz-option');
@@ -205,6 +259,13 @@ function renderQuestion() {
 	card.appendChild(quizEl('div', 'quiz-feedback'));
 	root.appendChild(card);
 	round.answered = false;
+	round.guess = false;
+}
+
+function toggleGuess() {
+	if (round.answered) return;
+	round.guess = !round.guess;
+	document.querySelector('.quiz-guess').classList.toggle('on', round.guess);
 }
 
 function answer(optionIndex) {
@@ -213,10 +274,10 @@ function answer(optionIndex) {
 
 	const item = round.items[round.index];
 	const chosen = item.options[optionIndex];
-	quizResults[item.question.id] = chosen.correct;
-	quizSave();
+	quizRecord(item.question.id, chosen.correct, round.guess);
 	if (chosen.correct) round.correct++;
-	else round.missed.push(item);
+	// A lucky guess counts as correct but comes back like a miss.
+	if (!chosen.correct || round.guess) round.missed.push(item);
 
 	const buttons = document.querySelectorAll('.quiz-option');
 	buttons.forEach((btn, i) => {
@@ -227,7 +288,12 @@ function answer(optionIndex) {
 
 	const feedback = document.querySelector('.quiz-feedback');
 	feedback.classList.add(chosen.correct ? 'ok' : 'bad');
-	feedback.appendChild(quizEl('strong', '', chosen.correct ? '✓ Correct. ' : '✗ Not quite. '));
+	const verdict = chosen.correct
+		? round.guess
+			? '✓ Correct, but you guessed. '
+			: '✓ Correct. '
+		: '✗ Not quite. ';
+	feedback.appendChild(quizEl('strong', '', verdict));
 	quizRich(feedback, item.question.why);
 
 	const last = round.index === round.items.length - 1;
@@ -262,8 +328,8 @@ function renderResult() {
 		round.correct === total
 			? '🎉 Perfect round.'
 			: round.correct >= total - 2
-				? '👍 Solid. The missed ones come back next round.'
-				: '🌱 Good start. The missed ones come back next round.';
+				? '👍 Solid. The missed ones come back tomorrow.'
+				: '🌱 Good start. The missed ones come back tomorrow.';
 	card.appendChild(quizEl('div', 'quiz-sub', message));
 
 	if (round.missed.length) {
@@ -300,11 +366,12 @@ function renderResult() {
 document.addEventListener('keydown', (e) => {
 	if (e.ctrlKey || e.metaKey || e.altKey || !round) return;
 	const key = e.key.toLowerCase();
+	if (key === 'g') toggleGuess();
 	const index = 'abcd1234'.indexOf(key) % 4;
 	if (key.length === 1 && 'abcd1234'.includes(key) && !round.answered) {
 		if (document.querySelectorAll('.quiz-option')[index]) answer(index);
 	}
 });
 
-quizLoad();
+quizMigrate();
 renderStart();
