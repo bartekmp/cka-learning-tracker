@@ -1068,3 +1068,21 @@ html.dark .heat-cell.level-3 {
 html.dark .streak-toggle:hover {
 	background: rgba(255, 255, 255, 0.08);
 }
+
+/* ── Small screens: floating widgets move to the bottom-right corner ────────── */
+
+/* At the top they cover the nav tabs. The panel opens upward from the pill. */
+@media (width <= 600px) {
+	#theme-toggle {
+		top: auto !important;
+		bottom: 16px;
+		right: 12px !important;
+	}
+
+	#pomo-host {
+		top: auto;
+		bottom: 60px;
+		right: 12px;
+		flex-direction: column-reverse;
+	}
+}
